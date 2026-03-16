@@ -1,28 +1,42 @@
 aid: business-software-and-services-reviews-g2
-name: Business Software and Services Reviews | G2
-description: 'Find the right software and services based on 3,050,100  real reviews. '
-type: Index
-position: Consumer
-access: 3rd-Party
-image: https://kinlane-productions.s3.amazonaws.com/apis-json/apis-json-logo.jpg
-tags:
-  - API
-created: '2025-07-11'
-modified: '2025-07-11'
 url: >-
   https://raw.githubusercontent.com/api-evangelist/business-software-and-services-reviews-g2/refs/heads/main/apis.yml
-specificationVersion: '0.19'
+name: Business Software and Services Reviews | G2
+tags:
+  - Software Reviews
+  - B2B
+  - SaaS
+type: Index
+image: https://kinlane-productions.s3.amazonaws.com/apis-json/apis-json-logo.jpg
+access: 3rd-Party
+created: '2025-07-11'
+modified: '2026-03-16'
+position: Consumer
+description: >-
+  G2 is the world's largest and most trusted software marketplace. More than 90
+  million people annually use G2 to make smarter software decisions based on
+  authentic peer reviews. Find the right software and services based on real
+  user reviews.
 apis:
   - aid: >-
       business-software-and-services-reviews-g2:business-software-and-services-reviews-g2
     name: Business Software and Services Reviews | G2
-    description: 'Find the right software and services based on 3,050,100  real reviews. '
-    humanURL: ' https://www.g2.com/'
     tags:
-      - API
+      - Software Reviews
+      - B2B
+    humanURL: https://www.g2.com/
     properties:
-      - type: Documentation
-        url: ' https://www.g2.com/'
+      - url: https://www.g2.com/
+        type: Documentation
+    description: >-
+      Find the right software and services based on real peer reviews from
+      verified users.
+common:
+  - type: Website
+    url: https://www.g2.com/
+  - type: Privacy Policy
+    url: https://www.g2.com/static/privacy
 maintainers:
   - FN: Kin Lane
-    email: info@apievangelist.com
+    email: kin@apievangelist.com
+specificationVersion: '0.19'
