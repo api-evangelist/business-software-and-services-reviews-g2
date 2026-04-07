@@ -3,9 +3,9 @@ url: >-
   https://raw.githubusercontent.com/api-evangelist/business-software-and-services-reviews-g2/refs/heads/main/apis.yml
 name: Business Software and Services Reviews | G2
 tags:
-  - Software Reviews
   - B2B
   - SaaS
+  - Software Reviews
 type: Index
 image: https://kinlane-productions.s3.amazonaws.com/apis-json/apis-json-logo.jpg
 access: 3rd-Party
@@ -22,8 +22,8 @@ apis:
       business-software-and-services-reviews-g2:business-software-and-services-reviews-g2
     name: Business Software and Services Reviews | G2
     tags:
-      - Software Reviews
       - B2B
+      - Software Reviews
     humanURL: https://www.g2.com/
     properties:
       - url: https://www.g2.com/
