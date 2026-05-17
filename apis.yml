@@ -9,7 +9,7 @@ tags:
   - Buyer Intent
   - Competitive Intelligence
 type: Index
-x-type: company
+kind: company
 image: https://kinlane-productions.s3.amazonaws.com/apis-json/apis-json-logo.jpg
 access: 3rd-Party
 created: '2025-07-11'
@@ -118,7 +118,7 @@ common:
     url: https://www.g2.com/
   - type: Portal
     url: https://documentation.g2.com/
-  - type: Privacy Policy
+  - type: PrivacyPolicy
     url: https://www.g2.com/static/privacy
   - type: Developer Documentation
     url: https://documentation.g2.com/docs/integrations
