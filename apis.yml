@@ -114,6 +114,8 @@ apis:
       - Automated competitive research in AI workflows
       - LLM-powered buyer intent analysis
 common:
+  - type: LinkedIn
+    url: https://www.linkedin.com/company/g2dotcom
   - type: Website
     url: https://www.g2.com/
   - type: Portal
