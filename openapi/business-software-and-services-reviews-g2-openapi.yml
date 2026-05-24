@@ -1,0 +1,211 @@
+openapi: 3.1.0
+info:
+  title: G2 API V2
+  version: "2.0"
+  description: |
+    The G2 API V2 provides programmatic access to G2's software reviews,
+    products, sellers, alternatives, and survey data. The API is intended
+    for vendors and partners who have a paid G2 data plan.
+
+    Authentication is via a token issued by G2, supplied in an
+    `Authorization` header using the format
+    `Authorization: Token token=YOUR_TOKEN`.
+  contact:
+    name: G2 Documentation
+    url: https://documentation.g2.com/
+servers:
+  - url: https://data.g2.com/api/v2
+    description: Production
+security:
+  - g2Token: []
+tags:
+  - name: Products
+  - name: Reviews
+  - name: Surveys
+  - name: Sellers
+  - name: Alternatives
+paths:
+  /products:
+    get:
+      tags: [Products]
+      summary: List products
+      description: |
+        Retrieve a paginated list of products on G2 that the API token
+        has permission to view.
+      operationId: listProducts
+      parameters:
+        - { name: page[size], in: query, schema: { type: integer, default: 10, maximum: 100 } }
+        - { name: page[number], in: query, schema: { type: integer, default: 1 } }
+        - { name: filter[name], in: query, schema: { type: string } }
+        - { name: filter[product_category_ids], in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: JSON:API style response with product resources
+          content:
+            application/vnd.api+json:
+              schema: { $ref: "#/components/schemas/ProductList" }
+        "401": { description: Missing or invalid token }
+        "429": { description: Rate limit exceeded }
+  /products/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Products]
+      summary: Retrieve product
+      operationId: getProduct
+      responses:
+        "200":
+          description: Product resource
+          content:
+            application/vnd.api+json:
+              schema: { $ref: "#/components/schemas/Product" }
+  /reviews:
+    get:
+      tags: [Reviews]
+      summary: List reviews
+      operationId: listReviews
+      parameters:
+        - { name: filter[product_id], in: query, schema: { type: string } }
+        - { name: filter[updated_at][gt], in: query, schema: { type: string, format: date-time } }
+        - { name: page[size], in: query, schema: { type: integer, default: 10 } }
+        - { name: page[number], in: query, schema: { type: integer, default: 1 } }
+      responses:
+        "200":
+          description: JSON:API style response with review resources
+          content:
+            application/vnd.api+json:
+              schema: { $ref: "#/components/schemas/ReviewList" }
+  /reviews/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Reviews]
+      summary: Retrieve review
+      operationId: getReview
+      responses:
+        "200":
+          description: Review resource
+          content:
+            application/vnd.api+json:
+              schema: { $ref: "#/components/schemas/Review" }
+  /surveys:
+    get:
+      tags: [Surveys]
+      summary: List survey responses
+      operationId: listSurveys
+      parameters:
+        - { name: filter[product_id], in: query, schema: { type: string } }
+        - { name: page[size], in: query, schema: { type: integer } }
+        - { name: page[number], in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: Survey responses
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                additionalProperties: true
+  /sellers:
+    get:
+      tags: [Sellers]
+      summary: List sellers
+      operationId: listSellers
+      responses:
+        "200":
+          description: Sellers list
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                additionalProperties: true
+  /sellers/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Sellers]
+      summary: Retrieve seller
+      operationId: getSeller
+      responses:
+        "200":
+          description: Seller resource
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                additionalProperties: true
+  /alternatives:
+    get:
+      tags: [Alternatives]
+      summary: List product alternatives
+      operationId: listAlternatives
+      parameters:
+        - { name: filter[product_id], in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Alternatives list
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                additionalProperties: true
+components:
+  securitySchemes:
+    g2Token:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Token issued by G2 in the format: `Token token=YOUR_TOKEN`'
+  schemas:
+    ProductList:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/Product" }
+        meta:
+          type: object
+          additionalProperties: true
+        links:
+          type: object
+          additionalProperties: true
+    Product:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string }
+        attributes:
+          type: object
+          properties:
+            name: { type: string }
+            slug: { type: string }
+            description: { type: string }
+            vendor_id: { type: string }
+            website_url: { type: string }
+            image_url: { type: string }
+            star_rating: { type: number, format: float }
+            reviews_count: { type: integer }
+    ReviewList:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/Review" }
+    Review:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string }
+        attributes:
+          type: object
+          properties:
+            title: { type: string }
+            star_rating: { type: number }
+            comment_answers:
+              type: object
+              additionalProperties: true
+            published_at: { type: string, format: date-time }
+            submitted_at: { type: string, format: date-time }
+            updated_at: { type: string, format: date-time }
+            user:
+              type: object
+              additionalProperties: true
