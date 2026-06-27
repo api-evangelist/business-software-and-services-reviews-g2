@@ -122,7 +122,7 @@ common:
     url: https://documentation.g2.com/
   - type: PrivacyPolicy
     url: https://www.g2.com/static/privacy
-  - type: Developer Documentation
+  - type: Documentation
     url: https://documentation.g2.com/docs/integrations
 maintainers:
   - FN: Kin Lane
