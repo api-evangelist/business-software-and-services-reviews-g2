@@ -114,6 +114,10 @@ apis:
       - Automated competitive research in AI workflows
       - LLM-powered buyer intent analysis
 common:
+  - type: TrustCenter
+    url: security/business-software-and-services-reviews-g2-trust-center.yml
+  - type: DomainSecurity
+    url: security/business-software-and-services-reviews-g2-domain-security.yml
   - type: LinkedIn
     url: https://www.linkedin.com/company/g2dotcom
   - type: Website
