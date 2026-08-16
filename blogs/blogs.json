@@ -1,0 +1,14 @@
+{
+  "repo": "business-software-and-services-reviews-g2",
+  "feeds": [
+    {
+      "source": "https://support.g2.com/",
+      "feed_url": "https://support.g2.com/",
+      "title": "",
+      "saved": 0,
+      "method": "none"
+    }
+  ],
+  "post_count": 0,
+  "fetched": "2026-08-15T12:22:01Z"
+}
