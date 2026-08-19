@@ -1,0 +1,139 @@
+generated: '2026-08-14'
+method: searched
+source: >-
+  openapi/business-software-and-services-reviews-g2-v2-openapi.yml and
+  openapi/business-software-and-services-reviews-g2-data-solutions-openapi.yml
+  (declared flows + operation-level security requirements), enriched from
+  https://documentation.g2.com/docs/g2-mcp-server (published scope table) and
+  https://mcp.g2.com/.well-known/oauth-protected-resource/mcp (RFC 9728
+  scopes_supported).
+docs: https://documentation.g2.com/docs/g2-mcp-server
+description: >-
+  G2's OAuth 2.0 scope surface, reconciled across three sources that do not
+  agree. The OpenAPI securityScheme declares only six scopes in its flows map but
+  requires ten distinct scopes at the operation level; the MCP documentation
+  publishes an eight-row table; the MCP protected-resource metadata advertises
+  ten. The union is sixteen. `origin` on each entry records which sources name
+  it, because a scope declared in only one place is a scope a client may not be
+  able to request.
+authorization_server: https://www.g2.com/
+discovery: well-known/business-software-and-services-reviews-g2-openid-configuration.json
+registration:
+  url: https://my.g2.com/developers
+  dynamic_client_registration: false
+  note: >-
+    OAuth apps must be pre-registered in the G2 Developer Portal. Permissions are
+    selected per endpoint at registration; a scope requested in the flow must have
+    a matching Read permission enabled on the app or the authorization server
+    returns "requested scope is invalid, unknown, or malformed".
+schemes:
+  - name: G2OAuth
+    type: oauth2
+    flows:
+      - flow: authorizationCode
+        authorizationUrl: https://www.g2.com/oauth/authorize
+        tokenUrl: https://www.g2.com/oauth/token
+        pkce: true
+        pkce_methods: [S256, plain]
+    sources:
+      - openapi/business-software-and-services-reviews-g2-v2-openapi.yml
+      - openapi/business-software-and-services-reviews-g2-data-solutions-openapi.yml
+  - name: AccountAPIToken
+    type: http
+    scheme: bearer
+    note: >-
+      Non-OAuth path. Developer Portal access tokens carry per-endpoint
+      permissions rather than scopes, and expire one year after creation. One
+      operation (getGridReports) declares a scope-shaped requirement
+      "reports.read" against this bearer scheme rather than against G2OAuth.
+scope_count: 16
+scopes:
+  - scope: openid
+    description: OpenID Connect default scope. Required for OAuth authentication.
+    origin: [openapi-flows, mcp-docs, protected-resource, oidc-discovery]
+  - scope: profile
+    description: Profile information on current user. Required for OAuth authentication.
+    origin: [openapi-flows, mcp-docs, protected-resource, oidc-discovery]
+  - scope: products.read
+    description: Read product catalog data.
+    origin: [mcp-docs, protected-resource]
+  - scope: products.reviews.read
+    description: Read product reviews.
+    origin: [mcp-docs, protected-resource]
+  - scope: vendors.read
+    description: Read vendor data.
+    origin: [mcp-docs, protected-resource]
+  - scope: buyer_intent.read
+    description: Read buyer intent signals.
+    origin: [mcp-docs, protected-resource]
+  - scope: research_boards.read
+    description: Read research boards.
+    origin: [mcp-docs, protected-resource]
+  - scope: research_boards.write
+    description: Create, update, and delete research boards.
+    origin: [mcp-docs, protected-resource]
+  - scope: ds_reviews.read
+    description: >-
+      Read Data Solutions reviews — the flat, firmographically enriched review
+      projection. Required by getDataSolutionsReviews.
+    origin: [protected-resource, openapi-operations]
+  - scope: g2_activate.read
+    description: >-
+      Read G2 Activate company unlock data. Required by the four G2 Activate
+      operations; a 403 titled "Missing g2_activate.read scope" is declared.
+    origin: [protected-resource, openapi-operations]
+  - scope: performance_analytics.read
+    description: >-
+      Read Performance Analytics data. Required by the five Performance Analytics
+      operations; a 403 titled "Missing performance_analytics.read scope" is declared.
+    origin: [openapi-flows, openapi-operations]
+    note: Declared in the spec's flows map and required by operations, but absent from both MCP sources.
+  - scope: data_subscriptions.read
+    description: Read Data Subscription records.
+    origin: [openapi-flows, openapi-operations]
+  - scope: data_subscriptions.read_write
+    description: Modify Data Subscription records.
+    origin: [openapi-flows, openapi-operations]
+  - scope: data_subscriptions.write
+    description: Write Data Subscription records.
+    origin: [openapi-operations]
+    note: >-
+      Required by createPartnerDataSubscription but NOT declared in the
+      securityScheme flows map — a client reading only the flows map would never
+      know to request it.
+  - scope: 'partner:partner-id.read'
+    description: Access records created in Partner realm.
+    origin: [openapi-flows, openapi-operations]
+    note: >-
+      Templated scope — "partner-id" is a placeholder for the partner's own
+      identifier, not a literal value.
+  - scope: snippets
+    description: Access product snippets. Required by getProductSnippets.
+    origin: [openapi-operations]
+    note: >-
+      Bare noun with no read/write suffix, unlike every other G2 scope, and
+      declared nowhere but on the operation. Likely legacy.
+oidc_scopes_supported:
+  scopes:
+    - openid
+    - openid_admin
+    - profile
+    - profile_admin
+  note: >-
+    The OIDC discovery document at www.g2.com advertises only these four. The
+    API and MCP scopes above are not listed there, so scopes_supported in
+    discovery is not a usable inventory of G2's API authorization surface.
+inconsistencies:
+  - >-
+    The OpenAPI flows map declares 6 scopes; operations require 10; the union
+    across all published sources is 16. No single G2 document lists them all.
+  - >-
+    data_subscriptions.write and snippets are required by operations but appear
+    in no flows map and no documentation.
+  - >-
+    performance_analytics.read and the data_subscriptions family appear in the
+    spec but not in the MCP protected-resource metadata, so they are presumably
+    unavailable to MCP clients.
+  - >-
+    getGridReports attaches "reports.read" to the AccountAPIToken bearer scheme,
+    which has no scope model at all.

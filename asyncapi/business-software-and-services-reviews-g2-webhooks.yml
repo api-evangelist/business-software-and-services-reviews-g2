@@ -1,0 +1,45 @@
+generated: '2026-08-14'
+method: searched
+source: >-
+  https://documentation.g2.com/docs/hubspot-webhook,
+  https://documentation.g2.com/docs/salesforce-crm-webhook,
+  https://my.g2.com/~/buyer_activity (Lead Webhooks tab, documented)
+spec_type: none
+description: >-
+  G2 publishes no AsyncAPI document and operates no event stream, but it does run
+  a real outbound webhook: leads captured on a vendor's G2 product profile are
+  POSTed to an endpoint the vendor configures in the my.G2 Lead Webhooks tab.
+  It is a form-shaped delivery, not an event bus — the payload is the G2 lead
+  form's fields, each mapped by the vendor to a destination field via "Override
+  API Name", and G2 documents it only through two destination-specific recipes
+  (HubSpot Forms and Salesforce Web-to-Lead). There is no event catalogue, no
+  event types, no payload schema, no signature/verification scheme, and no
+  retry or delivery-guarantee documentation.
+webhooks:
+  - name: G2 lead delivery
+    trigger: A buyer submits a lead form on the vendor's G2 product profile.
+    direction: outbound (G2 to customer endpoint)
+    configuration: my.G2 > Buyer Activity > Lead Webhooks
+    configuration_url: https://my.g2.com/~/buyer_activity
+    payload:
+      encoding: Form Data (documented option) — fields chosen and named by the vendor
+      schema_published: false
+      field_mapping: >-
+        Each G2 lead form field carries an "Override API Name" so it can be
+        renamed to the destination system's field key before delivery.
+    endpoint: Vendor-supplied URL, entered in the "Choose endpoint" field.
+    documented_recipes:
+      - destination: HubSpot
+        url: https://documentation.g2.com/docs/hubspot-webhook
+        endpoint_pattern: https://forms.hubspot.com/uploads/form/v2/:portal_id/:form_guid
+        format: Form Data
+      - destination: Salesforce
+        url: https://documentation.g2.com/docs/salesforce-crm-webhook
+        mechanism: Salesforce Web-to-Lead form endpoint
+gaps:
+  - No AsyncAPI or event-catalogue document.
+  - No published payload schema or example payload for the lead webhook.
+  - No signature, HMAC, or other request-verification scheme documented.
+  - No retry policy, delivery guarantee, or dead-letter behaviour documented.
+  - No webhook for the data the API exposes (reviews, buyer intent, badges) — polling is the only option.
+asyncapi_document: null

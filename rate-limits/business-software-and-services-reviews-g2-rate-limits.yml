@@ -3,97 +3,61 @@ specificationVersion: '0.1'
 schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/RateLimits
 provider: Business Software and Services Reviews | G2
 providerId: business-software-and-services-reviews-g2
+generated: '2026-08-14'
 created: '2026-05-04'
-modified: '2026-05-04'
-tags:
-  - B2B
-  - SaaS
-  - Software Reviews
-  - Buyer Intent
-  - Competitive Intelligence
-  - Rate Limiting
-  - Quotas
-  - Throttling
-description: Machine-readable rate limit definitions for the Business Software and Services Reviews |
-  G2 API surface. Captures per-tier quotas, burst behavior, response signaling, and recovery semantics.
-  Defaults are scaffold values to be replaced with published provider limits.
-headers:
-  limit: X-RateLimit-Limit
-  remaining: X-RateLimit-Remaining
-  reset: X-RateLimit-Reset
-  retryAfter: Retry-After
-  policy: RateLimit-Policy
-responseCodes:
-  throttled: 429
-  quotaExceeded: 429
-  serviceUnavailable: 503
+modified: '2026-08-14'
+method: searched
+source: >-
+  https://data.g2.com/openapi/v2.yaml (info.description "Rate Limiting" section)
+  and https://documentation.g2.com/docs/g2-mcp-server. Replaces the 2026-05-04
+  scaffold, whose per-tier limits were invented defaults G2 does not publish.
+docs: https://data.g2.com/api/v2/docs/index.html
+description: >-
+  G2 publishes exactly one rate limit and it is enforced at the edge, not per
+  plan: Cloudflare limits the G2 API to 100 requests per second per source IP
+  address. Exceeding it blocks access for 60 seconds before requests resume. The
+  G2 MCP server calls the same API and inherits the same limit. G2 publishes no
+  per-tier quota, no burst allowance, and no monthly cap, and the OpenAPI
+  declares no rate-limit response headers or 429 responses on any of its 62
+  operations — so a client has no runtime signal and must infer throttling from
+  connection-level blocking.
+limit_count: 1
 limits:
-  - tier: free
-    name: Free Tier Default
-    scope: api-key
-    metric: requests_per_minute
-    limit: 10
-    burst: 20
-    timeFrame: minute
-    applies:
-      - G2 API V2
-      - G2 Buyer Intent Data API
-      - G2 MCP Server
-  - tier: free
-    name: Free Tier Monthly Quota
-    scope: api-key
-    metric: requests_per_month
-    limit: 1000
-    timeFrame: month
-    applies:
-      - G2 API V2
-      - G2 Buyer Intent Data API
-      - G2 MCP Server
-  - tier: professional
-    name: Professional Tier Default
-    scope: api-key
-    metric: requests_per_minute
+  - name: Global API rate limit
+    scope: source-ip
+    metric: requests_per_second
     limit: 100
-    burst: 200
-    timeFrame: minute
+    timeFrame: second
+    enforced_by: Cloudflare (edge)
+    on_exceed: Access blocked for 60 seconds before requests can resume.
+    source: https://data.g2.com/openapi/v2.yaml
     applies:
       - G2 API V2
-      - G2 Buyer Intent Data API
+      - G2 Data Solutions API
       - G2 MCP Server
-  - tier: professional
-    name: Professional Tier Monthly Quota
-    scope: api-key
-    metric: requests_per_month
-    limit: 100000
-    timeFrame: month
-    applies:
-      - G2 API V2
-      - G2 Buyer Intent Data API
-      - G2 MCP Server
-  - tier: enterprise
-    name: Enterprise Negotiated Limit
-    scope: contract
-    metric: requests_per_minute
-    limit: 1000
-    burst: 5000
-    timeFrame: minute
-    applies:
-      - G2 API V2
-      - G2 Buyer Intent Data API
-      - G2 MCP Server
+headers:
+  published: false
+  limit: null
+  remaining: null
+  reset: null
+  retryAfter: null
+  policy: null
+  note: >-
+    G2 documents no X-RateLimit-*/RateLimit-* response headers and no Retry-After.
+    Grep of both OpenAPI documents finds zero rate-limit headers and zero 429
+    responses across 62 operations; the only documented 5xx is a 503 on
+    createG2ActivateIndustrySearch for LLM/embedding backend failure.
+responseCodes:
+  throttled: null
+  note: >-
+    No 429 is declared anywhere in the published contract. The documented
+    behaviour on breach is a 60-second block at the Cloudflare edge.
 policies:
-  - name: Backoff Strategy
-    description: Clients should implement exponential backoff with jitter, honoring the Retry-After header
-      when present.
-  - name: Burst Handling
-    description: Short bursts above the steady-state limit are tolerated up to the documented burst ceiling
-      before throttling engages.
-  - name: Quota Reset
-    description: Monthly quotas reset at the start of each calendar month in UTC. Per-minute and per-second
-      windows reset on a sliding-window basis.
-  - name: Fair Use
-    description: Even on uncapped enterprise tiers, sustained usage that materially impacts shared infrastructure
-      may be subject to fair-use throttling.
+  - name: Recovery
+    description: >-
+      After a breach, wait out the 60-second block. Because no Retry-After is
+      returned, clients should cap concurrency below 100 rps rather than react to
+      a header.
 maintainers:
   - FN: Kin Lane
     email: kin@apievangelist.com

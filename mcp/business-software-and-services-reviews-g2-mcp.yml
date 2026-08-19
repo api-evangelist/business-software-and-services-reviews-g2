@@ -1,0 +1,142 @@
+generated: '2026-08-14'
+method: searched
+status: published
+source: https://documentation.g2.com/docs/g2-mcp-server
+description: >-
+  G2 operates an official remote MCP server at https://mcp.g2.com/mcp,
+  authenticated with OAuth 2.0 Authorization Code + PKCE against G2's own
+  authorization server (https://www.g2.com/oauth/authorize). It exposes G2 buyer
+  intent, competitive intelligence, product catalog, category taxonomy, review
+  analytics and research boards to MCP clients. G2 does NOT ship a local stdio
+  package — there is no npx/pip install; the only way to reach it is the hosted
+  HTTPS endpoint. The tool list below is transcribed verbatim from G2's published
+  "Supported MCP tools" table; live tools/list is auth-gated (see x-evidence).
+deployment:
+  mode: remote
+  endpoint: https://mcp.g2.com/mcp
+  auth: oauth
+  verified: probed
+server:
+  name: g2-mcp
+  transport: http
+  url: https://mcp.g2.com/mcp
+  auth: oauth2
+  protected_resource: well-known/business-software-and-services-reviews-g2-mcp-oauth-protected-resource.json
+  authorization_server: https://www.g2.com/
+  oauth:
+    flow: authorization_code
+    pkce: true
+    dynamic_client_registration: false
+    registration: >-
+      Clients must pre-register an OAuth application in the G2 Developer Portal
+      (https://my.g2.com/developers) and supply client_id + client_secret. G2's
+      authorization server does not support RFC 7591 Dynamic Client Registration.
+    deviations:
+      - >-
+        The authorization callback returns `code` but does NOT return the `state`
+        parameter, so standard MCP SDK callback handlers that require `state`
+        must be relaxed to require only `code`.
+      - >-
+        Token validation is performed server-side via G2's introspection endpoint
+        using the MCP server's own credentials; a client whose OAuth application
+        lacks cross-application token introspection receives 401 after an
+        otherwise successful OAuth flow.
+    scopes_supported:
+      - buyer_intent.read
+      - ds_reviews.read
+      - g2_activate.read
+      - openid
+      - products.read
+      - products.reviews.read
+      - profile
+      - research_boards.read
+      - research_boards.write
+      - vendors.read
+entitlement: >-
+  An active G2 subscription is required. Access to specific datasets (notably
+  Buyer Intent) depends on the account's G2 entitlements.
+rate_limits:
+  note: >-
+    The MCP server calls the underlying G2 API and inherits its limits — 100
+    requests per second globally, with a 60-second block on breach.
+  detail: rate-limits/business-software-and-services-reviews-g2-rate-limits.yml
+partners:
+  - name: Claude
+    kind: connector
+    note: G2 MCP connector, discoverable in Claude's Connectors directory.
+  - name: ChatGPT
+    kind: connector
+    note: G2 MCP app, connected via OAuth from ChatGPT Apps.
+  - name: HubSpot
+    kind: partner-integration
+    note: G2 MCP for HubSpot; read-only access from Breeze Agents. Does not write to HubSpot records.
+  - name: Gong
+    kind: partner-integration
+    note: G2 MCP for Gong; available through Gong AI workflows only.
+  - name: AirOps
+    kind: partner-integration
+    note: G2 MCP for AirOps; available through AirOps Playbooks only.
+  - name: Profound
+    kind: partner-integration
+    note: G2 MCP for Profound; Profound Agents and Ask Profound.
+tools:
+  - name: list_products
+    description: Browse and filter the G2 product catalog
+  - name: show_product
+    description: Retrieve product details
+  - name: list_my_products
+    description: List products owned by the authenticated account
+  - name: list_categories
+    description: Browse G2 categories
+  - name: show_category
+    description: Retrieve category details
+  - name: list_standard_product_reviews
+    description: Retrieve product reviews
+  - name: list_market_intelligence_product_reviews
+    description: Retrieve reviews with B2B firmographic data
+  - name: list_vendors
+    description: Browse vendors
+  - name: show_vendor
+    description: Retrieve vendor details
+  - name: browse_buyer_intent
+    description: Query buyer intent signals
+  - name: browse_product_buyer_intent
+    description: Retrieve buyer intent for a single product
+  - name: browse_competitive_intelligence
+    description: Analyze competitor evaluation activity
+  - name: show_buyer_intent_dashboard
+    description: Display the buyer intent dashboard
+  - name: list_research_boards
+    description: List research boards
+  - name: show_research_board
+    description: Display a research board
+  - name: create_research_board
+    description: Create a research board
+  - name: update_research_board
+    description: Update a research board
+  - name: delete_research_board
+    description: Delete a research board
+  - name: list_research_board_products
+    description: List products on a research board
+  - name: add_products_to_research_board
+    description: Add products to a research board
+  - name: remove_products_from_research_board
+    description: Remove products from a research board
+tool_count: 21
+crosswalk: mcp/business-software-and-services-reviews-g2-tool-crosswalk.yml
+x-evidence:
+  fetched: '2026-08-14'
+  tools_list:
+    url: https://mcp.g2.com/mcp
+    method: POST
+    body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+    http_status: 401
+    www_authenticate: Bearer resource_metadata="https://mcp.g2.com/.well-known/oauth-protected-resource/mcp"
+    note: >-
+      Live introspection is auth-gated. Tool names and descriptions come from
+      G2's published documentation; per-tool inputSchema requires an
+      authenticated tools/list call and is not recorded here.
+  protected_resource:
+    url: https://mcp.g2.com/.well-known/oauth-protected-resource/mcp
+    http_status: 200
+    content_type: application/json

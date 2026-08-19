@@ -1,0 +1,92 @@
+generated: '2026-08-14'
+method: searched
+source: https://documentation.g2.com/docs/release-notes-2026
+description: >-
+  G2 maintains dated release notes, one page per year, back to 2021. They are
+  PRODUCT release notes covering my.G2, buyer intent, the review experience and
+  the marketplace — not an API changelog. API and MCP changes appear only when
+  they ship as product features, and no entry carries an API version, a breaking-change
+  flag, or an endpoint diff. Recent API-relevant entries are extracted below.
+scheme: dated
+cadence: monthly, grouped by quarter
+current_version: v2
+api_specific: false
+pages:
+  - year: 2026
+    url: https://documentation.g2.com/docs/release-notes-2026
+    updated: '2026-07-27'
+  - year: 2025
+    url: https://documentation.g2.com/docs/release-notes-2025
+  - year: 2024
+    url: https://documentation.g2.com/docs/release-notes
+  - year: 2023
+    url: https://documentation.g2.com/docs/2023-release-notes
+  - year: 2022
+    url: https://documentation.g2.com/docs/2022-release-notes
+  - year: 2021
+    url: https://documentation.g2.com/docs/2021-release-notes
+entries:
+  - date: '2026-07'
+    quarter: Q2 2026
+    title: MCP partner expansion
+    kind: addition
+    breaking: false
+    api_relevant: true
+    highlights:
+      - G2 data available through MCP integrations with Claude and Profound.
+    url: https://documentation.g2.com/docs/g2-mcp-server#mcpenabled-partners
+  - date: '2026-07'
+    quarter: Q2 2026
+    title: AI Enabled and AI Verified designations
+    kind: addition
+    breaking: false
+    api_relevant: false
+    highlights:
+      - Product profiles gain two AI trust-tier designations; AI Verified is awarded after 10+ reviewers confirm AI feature use.
+  - date: '2026-07'
+    quarter: Q2 2026
+    title: Buyer Intent updated details panel
+    kind: addition
+    breaking: false
+    api_relevant: true
+    highlights:
+      - Time-series graph of buying signals across G2, Capterra, Software Advice and GetApp.
+      - 7-day, 30-day, 90-day and one-year date filters plus signal-type filters.
+  - date: '2026-06'
+    quarter: Q2 2026
+    title: MCP integrations
+    kind: addition
+    breaking: false
+    api_relevant: true
+    highlights:
+      - G2 buyer intent and verified review data exposed via MCP for HubSpot, Gong, AirOps and ChatGPT.
+  - date: '2026-06'
+    quarter: Q2 2026
+    title: BigQuery and Databricks data connectors
+    kind: addition
+    breaking: false
+    api_relevant: true
+    highlights:
+      - Direct warehouse access to G2 data as an alternative to the REST API.
+    url: https://documentation.g2.com/docs/getting-started-with-bigquery
+  - date: '2026-06'
+    quarter: Q2 2026
+    title: Buyer Intent Studio and dashboard Activity Feed
+    kind: addition
+    breaking: false
+    api_relevant: true
+    highlights:
+      - Audience creation and targeting on buyer intent and engagement signals.
+      - Activity Feed surfaces the 10 most recent signals per account with line-item detail.
+  - date: '2026-06'
+    quarter: Q2 2026
+    title: Buyer Intent expansion
+    kind: addition
+    breaking: false
+    api_relevant: true
+    highlights:
+      - Buyer research activity from G2, Capterra, Software Advice and GetApp unified into one view.
+gaps:
+  - No API-specific changelog, version history, or endpoint diff is published.
+  - No breaking-change notices; no migration guides between API versions.
+  - The OpenAPI at data.g2.com carries no dated version, only "v2".

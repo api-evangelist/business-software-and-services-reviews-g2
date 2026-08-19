@@ -1,0 +1,1 @@
+{"resource":"https://mcp.g2.com/mcp","authorization_servers":["https://www.g2.com/"],"scopes_supported":["buyer_intent.read","ds_reviews.read","g2_activate.read","openid","products.read","products.reviews.read","profile","research_boards.read","research_boards.write","vendors.read"],"bearer_methods_supported":["header"]}

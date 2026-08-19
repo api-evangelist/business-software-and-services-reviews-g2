@@ -1,0 +1,25 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the G2 Data Solutions API
+  version: 1.0.0
+extends: openapi/business-software-and-services-reviews-g2-data-solutions-openapi.yml
+x-provenance:
+  generated: '2026-08-14'
+  method: generated
+  source: >-
+    API Evangelist enrichment of the verbatim spec harvested from
+    https://data.g2.com/openapi/data_solutions.yaml on 2026-08-14.
+actions:
+  - target: $.info
+    update:
+      x-apievangelist-profile: https://apis.io/provider/business-software-and-services-reviews-g2
+      x-api-evangelist-harvested-from: https://data.g2.com/openapi/data_solutions.yaml
+      x-lifecycle-stage: beta
+      x-error-format: jsonapi
+  - target: $.paths['/api/v2/data_solutions/reviews'].get
+    update:
+      x-scope-required: ds_reviews.read
+      x-beta: true
+      x-beta-note: >-
+        G2 states the definition may change before official release.
+      x-agent-tool: list_market_intelligence_product_reviews

@@ -1,0 +1,172 @@
+generated: '2026-08-14'
+method: derived
+source: >-
+  openapi/business-software-and-services-reviews-g2-v2-openapi.yml and
+  openapi/business-software-and-services-reviews-g2-data-solutions-openapi.yml —
+  every declared 4xx/5xx response across 62 operations. G2 publishes no separate
+  error reference page; the specs are the only error documentation that exists.
+format: jsonapi
+media_type: application/vnd.api+json
+envelope:
+  schema: Errors
+  shape: '{ "errors": [ { "status": "<http status as string>", "title": "<summary>", "links": null, "source": null } ] }'
+  note: >-
+    Not RFC 9457. There is no `type` URI, no `detail`, no `code`, and no
+    application/problem+json anywhere in G2's published contract — a client can
+    branch on the HTTP status and on English title strings only.
+description: >-
+  Derived catalogue of every documented failure mode on the G2 API V2. 142
+  declared error responses collapse into five distinct HTTP statuses. Note the
+  absence of 429: G2's only published rate limit is enforced at the Cloudflare
+  edge with a 60-second IP block and is not modelled in the contract.
+problems:
+  - status: 400
+    title: Bad Request
+    occurrences: 37
+    variants:
+      - description: "with invalid request parameters"
+        operations: 26
+      - description: "With disallowed sort value"
+        operations: 2
+        operationIds:
+          - getG2ActivateLockedCompanies
+          - getG2ActivateUnlockedCompanies
+      - description: "When the provider is unsupported"
+        operations: 2
+        operationIds:
+          - getPerformanceAnalyticsDataQuality
+          - getPerformanceAnalyticsIntegrationHealth
+      - description: "With too-short query"
+        operations: 1
+        operationIds:
+          - createG2ActivateIndustrySearch
+      - description: "Invalid parameters"
+        operations: 1
+        operationIds:
+          - getMarketSignalsIndex
+      - description: "bad request"
+        operations: 1
+        operationIds:
+          - createPartnerDataSubscription
+      - description: "When date_from is after date_to"
+        operations: 1
+        operationIds:
+          - getPerformanceAnalyticsRoiSummary
+      - description: "When the metric is not trendable"
+        operations: 1
+        operationIds:
+          - getPerformanceAnalyticsRoiTrend
+      - description: "Bad Request"
+        operations: 1
+        operationIds:
+          - getGridReports
+      - description: "Invalid review submission"
+        operations: 1
+        operationIds:
+          - submitCurrentUserProductReview
+
+  - status: 401
+    title: Unauthorized
+    occurrences: 49
+    variants:
+      - description: "Unauthenticated"
+        operations: 48
+      - description: "Unauthorized"
+        operations: 1
+        operationIds:
+          - getGridReports
+
+  - status: 403
+    title: Forbidden
+    occurrences: 24
+    variants:
+      - description: "Forbidden"
+        operations: 13
+      - description: "Missing performance_analytics.read scope"
+        operations: 5
+        operationIds:
+          - getPerformanceAnalyticsDataQuality
+          - getPerformanceAnalyticsRoiSummary
+          - getPerformanceAnalyticsRoiTrend
+          - getPerformanceAnalyticsIntegrationHealth
+          - getPerformanceAnalyticsActivationStatus
+      - description: "Missing g2_activate.read scope"
+        operations: 3
+        operationIds:
+          - getG2ActivateLockedCompanies
+          - getG2ActivateUnlockedCompanies
+          - getG2ActivateUnlockedCompany
+      - description: "Not Authorized"
+        operations: 2
+        operationIds:
+          - getCurrentUserProductReview
+          - submitCurrentUserProductReview
+      - description: "forbidden"
+        operations: 1
+        operationIds:
+          - createPartnerDataSubscription
+
+  - status: 404
+    title: Not Found
+    occurrences: 32
+    variants:
+      - description: "With invalid id"
+        operations: 16
+      - description: "With invalid product id"
+        operations: 6
+        operationIds:
+          - getPerformanceAnalyticsDataQuality
+          - getPerformanceAnalyticsRoiSummary
+          - getPerformanceAnalyticsRoiTrend
+          - getPerformanceAnalyticsIntegrationHealth
+          - getPerformanceAnalyticsActivationStatus
+          - getProductIntegrationReviews
+      - description: "Actor lacks intent_driven_leads component on product"
+        operations: 2
+        operationIds:
+          - getG2ActivateLockedCompanies
+          - getG2ActivateUnlockedCompanies
+      - description: "Organization not found"
+        operations: 2
+        operationIds:
+          - getOrganizationCreditAccount
+          - getOrganizationCreditDeductions
+      - description: "Not Found"
+        operations: 2
+        operationIds:
+          - getGridReports
+          - getResearchBoard
+      - description: "With unknown product id"
+        operations: 1
+        operationIds:
+          - createG2ActivateIndustrySearch
+      - description: "Company exists but has no unlock for this product"
+        operations: 1
+        operationIds:
+          - getG2ActivateUnlockedCompany
+      - description: "Category not found"
+        operations: 1
+        operationIds:
+          - getMarketSignalsIndex
+      - description: "Review not found"
+        operations: 1
+        operationIds:
+          - getCurrentUserProductReview
+
+  - status: 503
+    title: Service Unavailable
+    occurrences: 1
+    variants:
+      - description: "LLM or embedding backend failure"
+        operations: 1
+        operationIds:
+          - createG2ActivateIndustrySearch
+
+not_declared:
+  - status: 429
+    note: >-
+      No operation declares a 429. Breaching 100 requests/second results in a
+      60-second Cloudflare block, not a modelled API error. See
+      rate-limits/business-software-and-services-reviews-g2-rate-limits.yml
+  - status: 500
+    note: No operation declares a generic 5xx; the only 5xx published is a single 503.

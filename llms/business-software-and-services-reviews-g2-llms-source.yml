@@ -1,0 +1,28 @@
+generated: '2026-08-14'
+method: searched
+source: https://documentation.g2.com/llms.txt
+description: >-
+  G2 publishes llms.txt on both hosts. The developer/knowledge-base index at
+  documentation.g2.com/llms.txt (244 lines, every doc page also available as
+  .md) is saved verbatim as the artifact. A second, marketing-facing llms.txt at
+  https://www.g2.com/llms.txt documents G2's public URL patterns and the Grid®
+  PNG/SVG/JSON endpoints for AI assistants; it is recorded here rather than
+  duplicated.
+files:
+  - file: business-software-and-services-reviews-g2-llms.txt
+    url: https://documentation.g2.com/llms.txt
+    http_status: 200
+    content_type: text/plain
+    bytes: 25241
+  - url: https://www.g2.com/llms.txt
+    http_status: 200
+    content_type: text/markdown
+    bytes: 4313
+    saved: false
+    note: >-
+      Consumer/content-facing index. Notable because it publishes machine-consumable
+      Grid® resources — https://www.g2.com/categories/{slug}/grids.png|.svg|.json
+      with a repeatable ?focus[]={product-slug} parameter — which are agent-reachable
+      data endpoints that appear in no OpenAPI G2 publishes.
+  - url: https://documentation.g2.com/llms-full.txt
+    http_status: 404

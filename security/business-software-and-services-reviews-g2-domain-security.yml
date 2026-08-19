@@ -1,13 +1,12 @@
-generated: '2026-07-11'
+generated: '2026-08-14'
 method: probed
 source: live DNS/TLS/HTTP probes of apis.yml + OpenAPI hosts
 hosts:
 - host: www.g2.com
   https: true
   tls_version: TLSv1.3
-  cert_expires: Aug 30 01:33:51 2026 GMT
-  hsts: true
-  hsts_max_age: 15552000
+  cert_expires: Oct 28 03:10:18 2026 GMT
+  hsts: null
 - host: documentation.g2.com
   https: true
   tls_version: TLSv1.3
@@ -17,7 +16,7 @@ hosts:
 - host: data.g2.com
   https: true
   tls_version: TLSv1.3
-  cert_expires: Aug 31 06:00:00 2026 GMT
+  cert_expires: Oct 29 07:58:14 2026 GMT
   hsts: true
   hsts_max_age: 15552000
 domains:

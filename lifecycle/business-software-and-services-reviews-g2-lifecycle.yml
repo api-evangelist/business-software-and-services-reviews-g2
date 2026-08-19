@@ -1,0 +1,80 @@
+generated: '2026-08-14'
+method: searched
+source: >-
+  https://data.g2.com/openapi/v2.yaml, https://data.g2.com/openapi/data_solutions.yaml,
+  https://documentation.g2.com/docs/release-notes-2026,
+  https://documentation.g2.com/docs/developer-portal, and live probes of
+  status.g2.com.
+description: >-
+  G2 versions its API in the URI path (/api/v2/) with no version header and no
+  published deprecation policy. It maintains a dated product changelog (annual
+  release-notes pages back to 2021) but that changelog is product-level, not
+  API-level: it announces features in my.G2 and on g2.com, and only occasionally
+  mentions the API or MCP surface. There is no reachable public status page and
+  no published SLA or uptime target.
+versioning:
+  scheme: uri-path
+  current: v2
+  mechanism: /api/v2/ path prefix
+  version_header: null
+  docs: https://data.g2.com/api/v2/docs/index.html
+  notes: >-
+    The OpenAPI info.version is "v2" for both published documents. Two surfaces
+    are explicitly pre-GA and G2 says so in the operation descriptions: the Data
+    Solutions reviews endpoint is marked "BETA API ... definition might change by
+    the official release", and the sandbox buyer intent endpoint is marked
+    "Sandbox API" and data-limited.
+deprecation:
+  policy_url: null
+  sunset_header: false
+  deprecation_header: false
+  notes: >-
+    G2 publishes no deprecation or sunset policy, and no RFC 8594 Sunset or
+    Deprecation response headers appear in either specification. Deprecation is
+    signalled only in-spec, on individual parameters. No Deprecation pointer is
+    emitted.
+deprecated_operations: []
+deprecated_parameters:
+  - parameter: per_page
+    spec: openapi/business-software-and-services-reviews-g2-v2-openapi.yml
+    evidence: >-
+      "Deprecated alias for page[size] (max 50). page[size] takes precedence."
+      Carries deprecated: true in the spec.
+beta_surfaces:
+  - operationId: getDataSolutionsReviews
+    spec: openapi/business-software-and-services-reviews-g2-data-solutions-openapi.yml
+    note: Marked "BETA API"; definition may change before official release. Requires ds_reviews.read.
+  - operationId: getSandboxBuyerIntentInteractions
+    spec: openapi/business-software-and-services-reviews-g2-v2-openapi.yml
+    note: Sandbox endpoint, no scope required, limited to data 6-12 months old.
+credentials:
+  access_token_lifetime: 1 year
+  note: >-
+    "Access tokens expire one year after creation and must be regenerated for
+    continued access." — https://documentation.g2.com/docs/developer-portal
+sla:
+  url: null
+  uptime_target: null
+  notes: G2 publishes no API SLA or uptime commitment on any public page.
+status_page: null
+status_page_probe:
+  host: https://status.g2.com
+  software: Uptime Kuma
+  findings:
+    - url: https://status.g2.com/
+      status: 403
+    - url: https://status.g2.com/status/g2
+      status: 404
+    - url: https://status.g2.com/api/status-page/heartbeat/g2
+      status: 200
+      body: '{"heartbeatList":{},"uptimeList":{}}'
+    - url: https://g2.statuspage.io
+      status: 200
+      note: Redirects to /inactive — the Atlassian Statuspage account is inactive.
+  conclusion: >-
+    An Uptime Kuma instance is deployed at status.g2.com but no public status
+    page is published on it: the root 403s, no status-page slug resolves, and
+    the heartbeat API returns empty. G2's documentation never links a status
+    page. No StatusPage pointer is emitted — recording one would credit G2 with
+    an operational surface a customer cannot actually reach.
+changelog: changelog/business-software-and-services-reviews-g2-changelog.yml

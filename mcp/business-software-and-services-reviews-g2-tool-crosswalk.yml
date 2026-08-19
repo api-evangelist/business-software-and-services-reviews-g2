@@ -1,0 +1,194 @@
+generated: '2026-08-14'
+method: derived
+source: >-
+  mcp/business-software-and-services-reviews-g2-mcp.yml (21 published tool names)
+  bound to operationIds in
+  openapi/business-software-and-services-reviews-g2-v2-openapi.yml (61 operations).
+description: >-
+  Binds each published G2 MCP tool to the backing G2 API V2 operation(s), so a
+  tool inherits that operation's real parameters and requestBody as its input
+  contract. G2's MCP server is a thin agent projection of the same REST core:
+  every tool maps cleanly onto a v2 operationId. The REST surface is much wider
+  than the tool surface — 61 operations vs 21 tools — so most of G2's API
+  (screenshots, badges, features, discussions, downloads, competitors, questions,
+  grid reports, G2 Activate, Performance Analytics, Data Subscriptions, Credit
+  Account, Product Mappings, Market Signals) has no agent tool at all.
+  Confidence is `medium` where the live MCP inputSchema is auth-gated and the
+  binding was made by name + semantics rather than by observed schema.
+surfaces:
+  openapi:
+    file: openapi/business-software-and-services-reviews-g2-v2-openapi.yml
+    operations: 61
+    gated: false
+    note: Published at https://data.g2.com/openapi/v2.yaml; calling it requires a token.
+  openapi_secondary:
+    file: openapi/business-software-and-services-reviews-g2-data-solutions-openapi.yml
+    operations: 1
+    gated: false
+  mcp:
+    url: https://mcp.g2.com/mcp
+    tools: 21
+    gated: true
+    note: tools/list returns 401; tool names/descriptions taken from published docs.
+  graphql:
+    present: false
+crosswalk:
+  - tool: list_products
+    category: catalog
+    rest: [getProducts]
+    binding: rest
+    confidence: high
+  - tool: show_product
+    category: catalog
+    rest: [getProduct]
+    binding: rest
+    confidence: high
+  - tool: list_my_products
+    category: catalog
+    rest: [getCurrentUserProducts]
+    binding: rest
+    confidence: high
+  - tool: list_categories
+    category: taxonomy
+    rest: [getCategories]
+    binding: rest
+    confidence: high
+  - tool: show_category
+    category: taxonomy
+    rest: [getCategory]
+    binding: rest
+    confidence: high
+  - tool: list_standard_product_reviews
+    category: reviews
+    rest: [getProductReviews]
+    binding: rest
+    confidence: high
+  - tool: list_market_intelligence_product_reviews
+    category: reviews
+    rest: [getDataSolutionsReviews]
+    binding: rest
+    confidence: medium
+    note: >-
+      "Reviews with B2B firmographic data" matches the Data Solutions reviews
+      endpoint (ds_reviews.read scope, flat enriched attributes) rather than the
+      standard product-reviews endpoint. Both are beta-flagged by G2.
+  - tool: list_vendors
+    category: catalog
+    rest: [getVendors]
+    binding: rest
+    confidence: high
+  - tool: show_vendor
+    category: catalog
+    rest: [getVendor]
+    binding: rest
+    confidence: high
+  - tool: browse_buyer_intent
+    category: buyer-intent
+    rest: [getGlobalBuyerIntentInteractions]
+    binding: rest
+    confidence: high
+    note: >-
+      The sandbox twin getSandboxBuyerIntentInteractions requires no scope and is
+      limited to data 6-12 months old; use it to exercise the query language.
+  - tool: browse_product_buyer_intent
+    category: buyer-intent
+    rest: [getBuyerIntentInteractions]
+    binding: rest
+    confidence: high
+  - tool: browse_competitive_intelligence
+    category: competitive-intelligence
+    rest: [getProductCompetitors, getGlobalBuyerIntentInteractions]
+    binding: rest
+    confidence: medium
+    note: >-
+      No single REST operation named for competitive intelligence. G2 documents
+      the capability as "which competitors prospects evaluate", which the buyer
+      intent OLAP query surface answers via competitor dimensions; the static
+      competitor set comes from getProductCompetitors.
+  - tool: show_buyer_intent_dashboard
+    category: buyer-intent
+    rest: [getBuyerIntentInteractions]
+    binding: rest
+    confidence: low
+    note: >-
+      Dashboard is a my.G2 UI surface. Mapped to the per-product buyer intent
+      query as the nearest REST equivalent; may be a server-side composite.
+  - tool: list_research_boards
+    category: research-boards
+    rest: [listResearchBoards]
+    binding: rest
+    confidence: high
+  - tool: show_research_board
+    category: research-boards
+    rest: [getResearchBoard]
+    binding: rest
+    confidence: high
+  - tool: create_research_board
+    category: research-boards
+    rest: [createResearchBoard]
+    binding: rest
+    confidence: high
+  - tool: update_research_board
+    category: research-boards
+    rest: [updateResearchBoard]
+    binding: rest
+    confidence: high
+  - tool: delete_research_board
+    category: research-boards
+    rest: [deleteResearchBoard]
+    binding: rest
+    confidence: high
+  - tool: list_research_board_products
+    category: research-boards
+    rest: [listResearchBoardProducts]
+    binding: rest
+    confidence: high
+  - tool: add_products_to_research_board
+    category: research-boards
+    rest: [addProductToResearchBoard, batchAddProductsToResearchBoard]
+    binding: rest
+    confidence: high
+    note: Fans out — REST splits single-add and batch_create; the tool name is plural.
+  - tool: remove_products_from_research_board
+    category: research-boards
+    rest: [removeProductFromResearchBoard, batchRemoveProductsFromResearchBoard]
+    binding: rest
+    confidence: high
+    note: Fans out — REST splits single-remove and batch_destroy.
+mcp_only: []
+rest_only:
+  - capability: Screenshots
+    operations: [getScreenshots, getScreenshot, getProductScreenshots]
+  - capability: Product features
+    operations: [getCategoryFeatures, getAllCategoryFeatures, getProductFeatures, getAllProductFeatures]
+  - capability: G2 Activate (company unlocks)
+    operations: [createG2ActivateIndustrySearch, getG2ActivateLockedCompanies, getG2ActivateUnlockedCompanies, getG2ActivateUnlockedCompany]
+  - capability: Performance Analytics
+    operations: [getPerformanceAnalyticsDataQuality, getPerformanceAnalyticsRoiSummary, getPerformanceAnalyticsRoiTrend, getPerformanceAnalyticsIntegrationHealth, getPerformanceAnalyticsActivationStatus]
+  - capability: Data Subscriptions
+    operations: [getPartnerDataSubscriptions, createPartnerDataSubscription, deletePartnerDataSubscription]
+  - capability: Credit Account
+    operations: [getOrganizationCreditAccount, getOrganizationCreditDeductions]
+  - capability: Product Mappings
+    operations: [getProductMappings, createProductMapping, updateProductMapping]
+  - capability: Market Signals
+    operations: [getMarketSignalsIndex]
+  - capability: Grid reports and ratings
+    operations: [getGridReports, getProductRatings, getProductMedals]
+  - capability: Community content
+    operations: [getProductDiscussions, getQuestions, getQuestion, getProductIntegrationReviews]
+  - capability: Media and assets
+    operations: [getProductVideos, getProductVideoReviews, getProductDownloads, getProductSnippets]
+  - capability: Reviews (write/self)
+    operations: [getCurrentUserProductReview, submitCurrentUserProductReview]
+  - capability: Identity
+    operations: [getCurrentUser]
+  - capability: Sandbox
+    operations: [getSandboxBuyerIntentInteractions]
+coverage:
+  tools_named: 21
+  tools_bound: 21
+  mcp_only: 0
+  rest_operations_total: 62
+  rest_operations_with_a_tool: 24
+  rest_operations_without_a_tool: 38

@@ -1,0 +1,95 @@
+generated: '2026-08-14'
+method: searched
+source: >-
+  npm registry (registry.npmjs.org), PyPI, RubyGems, Packagist, crates.io,
+  NuGet, pkg.go.dev, the GitHub org github.com/g2crowd (131 public repos), and
+  https://documentation.g2.com/docs/developer-portal
+description: >-
+  G2 ships NO first-party client library for the G2 API in any language. Its
+  documentation never mentions an SDK; the only integration paths it publishes
+  are raw HTTP, the Swagger UI console, Postman (configured by hand against the
+  OAuth endpoints), and the remote MCP server. The packages G2 does publish are
+  internal web-platform tooling, not API clients, and the one Ruby API wrapper
+  that ever existed was never released to RubyGems and has not been touched
+  since 2019. Because there is no official SDK, no `SDKs` pointer is emitted for
+  this provider.
+official_sdk_count: 0
+packages:
+  - language: javascript
+    registry: npm
+    name: "@g2crowd/elevate"
+    url: https://www.npmjs.com/package/@g2crowd/elevate
+    source: https://github.com/g2crowd/elevate-g2
+    install: npm install @g2crowd/elevate
+    official: true
+    api_client: false
+    version: 2.2.0
+    published: '2026-08-13'
+    license: UNLICENSED
+    note: >-
+      G2 Elevate design system — Tailwind theme, component styles and design
+      tokens. Actively maintained (first published 2026-05-01) and published by
+      G2 staff, but it is front-end styling, not a G2 API client. Licensed
+      UNLICENSED, so it is not usable by third parties.
+  - language: javascript
+    registry: npm
+    name: "@g2crowd/widget"
+    url: https://www.npmjs.com/package/@g2crowd/widget
+    source: https://github.com/g2crowd/widget
+    install: npm install @g2crowd/widget
+    official: true
+    api_client: false
+    version: 2.3.1
+    published: '2024-03-20'
+    license: MIT
+    note: >-
+      "Rails-friendly plugin wrapper" — a generic DOM plugin utility used by G2's
+      own web app. Not a G2 API client. Last release 2024-03-20.
+  - language: ruby
+    registry: rubygems
+    name: g2crowd
+    url: null
+    source: https://github.com/g2crowd/g2crowd-ruby
+    install: null
+    official: true
+    api_client: true
+    version: null
+    published: null
+    note: >-
+      "Ruby wrapper for the G2Crowd API", authored by a G2 employee
+      (lpriest@g2.com), gemspec name "g2crowd". NEVER PUBLISHED —
+      https://rubygems.org/api/v1/gems/g2crowd.json returns "This rubygem could
+      not be found". Last commit 2019-06-12, seven years stale and predating the
+      entire v2 API it would have to wrap. version/published are null because the
+      package does not exist in any registry, not because the check was skipped.
+registries_checked:
+  - registry: npm
+    query: 'scope @g2crowd, text search "g2crowd" / "g2.com api"'
+    api_clients_found: 0
+  - registry: rubygems
+    query: g2crowd
+    result: '[] — no gem'
+  - registry: pypi
+    query: g2
+    result: >-
+      pypi.org/project/g2 is pyG2, a Python binding for AntV G2 charting by an
+      unrelated author. No G2.com package.
+  - registry: packagist
+    api_clients_found: 0
+  - registry: crates.io
+    api_clients_found: 0
+  - registry: nuget
+    api_clients_found: 0
+  - registry: pkg.go.dev
+    api_clients_found: 0
+github_org:
+  url: https://github.com/g2crowd
+  name: G2
+  public_repos: 131
+  note: >-
+    Overwhelmingly forks of third-party Ruby/Terraform/GitHub-Action tooling plus
+    internal infrastructure. The only G2-API-specific repo is the unpublished
+    g2crowd-ruby wrapper. github.com/g2crowd/g2agents (TypeScript, pushed
+    2026-08-06) is a prototype "registry for agent-readable software buying
+    knowledge" — Markdown + YAML frontmatter with a JSON Schema, not a client
+    library and not wired to the G2 API.

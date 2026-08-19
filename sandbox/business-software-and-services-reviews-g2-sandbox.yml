@@ -1,0 +1,59 @@
+generated: '2026-08-14'
+method: searched
+source: >-
+  https://data.g2.com/openapi/v2.yaml (getSandboxBuyerIntentInteractions),
+  https://documentation.g2.com/docs/developer-portal
+description: >-
+  G2 does not run a separate sandbox environment and publishes no test keys, test
+  cards or fixture tooling. What it does publish is a single sandbox ENDPOINT on
+  the production host that requires no OAuth scope, so a developer can exercise
+  the buyer intent query language before their organization is entitled to live
+  intent data. Interactive try-it-out against production runs in the Swagger UI
+  with a real Developer Portal token.
+test_live_separation:
+  separate_environment: false
+  separate_host: false
+  key_prefixes: null
+  note: >-
+    One set of credentials, one host (data.g2.com). Isolation is per-endpoint,
+    not per-environment.
+sandbox_endpoints:
+  - operationId: getSandboxBuyerIntentInteractions
+    method: GET
+    path: /api/sandbox/products/{subject_product_id}/buyer_intent
+    scope_required: none
+    published_note: >-
+      "No scope is required to access this sandbox endpoint" and
+      "Sandbox API: This endpoint is a sandbox endpoint and is data limited. Only
+      data between 6 months to 1 year ago will be available."
+    data_window: 6 to 12 months in the past
+    live_twin: getBuyerIntentInteractions
+    purpose: >-
+      Exercise the OLAP query interface — dimensions, measures, dimension_filters
+      with _eq/_cont/_gt/_present operators, sort, and time-series vs aggregated
+      shapes — against real but aged data.
+unauthenticated_surface:
+  - spec: openapi/business-software-and-services-reviews-g2-chatgpt-plugin-openapi.json
+    base_url: https://www.g2.com/
+    auth: none
+    operations: [findProductByName, findProductByType]
+    note: >-
+      The ChatGPT plugin OpenAPI declares auth type "none" and is reachable
+      without credentials. Not described by G2 as a sandbox, but it is the only
+      G2 API surface a developer can call with nothing at all.
+interactive_console:
+  url: https://data.g2.com/api/v2/docs/index.html
+  kind: Swagger UI
+  auth: >-
+    Paste a Developer Portal access token into Authorize, then Try it out. This
+    executes against production, not a sandbox.
+  docs: https://documentation.g2.com/docs/developer-portal
+test_values:
+  published: false
+  note: >-
+    G2 publishes no magic identifiers, test UUIDs or seeded fixtures. The sample
+    response in the Developer Portal docs uses obviously-synthetic UUIDs
+    (aaaaaaaa-bbbb-4ccc-8ddd-…) and localhost URLs; those are illustration, not
+    callable test data, and are not recorded as test values here.
+time_simulation:
+  supported: false

@@ -1,0 +1,67 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the G2 API V2
+  version: 1.0.0
+extends: openapi/business-software-and-services-reviews-g2-v2-openapi.yml
+x-provenance:
+  generated: '2026-08-14'
+  method: generated
+  source: >-
+    API Evangelist enrichment of the verbatim spec harvested from
+    https://data.g2.com/openapi/v2.yaml on 2026-08-14. The original is preserved
+    unmodified at openapi/_original/.
+actions:
+  - target: $.info
+    update:
+      x-apievangelist-profile: https://apis.io/provider/business-software-and-services-reviews-g2
+      x-api-evangelist-harvested-from: https://data.g2.com/openapi/v2.yaml
+      x-api-evangelist-discovered-via: >-
+        Swagger UI config at https://data.g2.com/api/v2/docs/index.html, which
+        names /openapi/v2.yaml and /openapi/data_solutions.yaml.
+      x-error-format: jsonapi
+      x-idempotency: none
+      x-agent-surface: https://mcp.g2.com/mcp
+  - target: $.servers[0]
+    update:
+      x-resolved-host: https://data.g2.com
+      x-note: >-
+        Templated server https://{defaultHost} with defaultHost defaulting to
+        data.g2.com. The host is real and the variable has a working default —
+        no repair required.
+  - target: $.info
+    update:
+      x-rate-limit:
+        limit: 100
+        window: second
+        scope: source-ip
+        enforced_by: Cloudflare
+        on_exceed: 60-second block
+        headers: none
+        status_code: none
+  - target: $.components.securitySchemes.AccountAPIToken
+    update:
+      x-token-lifetime: 1 year
+      x-issued-at: https://my.g2.com/developers
+      x-note: >-
+        Developer Portal access token, scoped to a User or an Organization with
+        per-endpoint permissions chosen at issue time.
+  - target: $.components.securitySchemes.G2OAuth
+    update:
+      x-pkce: required
+      x-dynamic-client-registration: false
+      x-discovery: https://www.g2.com/.well-known/openid-configuration
+      x-deviation: Authorization callback returns `code` without `state`.
+  - target: $.paths['/api/sandbox/products/{subject_product_id}/buyer_intent'].get
+    update:
+      x-sandbox: true
+      x-scope-required: none
+      x-data-window: 6 to 12 months in the past
+      x-live-twin: getBuyerIntentInteractions
+  - target: $.components.schemas.Errors
+    update:
+      x-format: jsonapi
+      x-rfc9457: false
+      x-note: >-
+        Only `status` and `title` are populated. No machine-readable error code,
+        no type URI, no remediation link. Clients cannot branch on anything but
+        the HTTP status.

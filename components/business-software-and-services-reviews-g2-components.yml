@@ -1,0 +1,66 @@
+generated: '2026-08-14'
+method: searched
+source: >-
+  https://documentation.g2.com/docs/widgets,
+  https://documentation.g2.com/docs/review-collection-widgets,
+  https://www.g2.com/llms.txt
+description: >-
+  G2's client-side surface is a suite of embeddable widgets a vendor pastes into
+  their own site as an HTML snippet, generated per-product in my.G2. They are
+  iframe embeds and script snippets, not a component library — there is no npm
+  package, no loader SDK, and no configuration API. Alongside them G2 publishes
+  a set of unauthenticated Grid® render endpoints that behave like components for
+  agents: PNG, SVG and JSON renderings of any category Grid, addressable by
+  category slug with a repeatable focus[] parameter.
+distribution: HTML embed snippets generated per product in my.G2
+loader_library: null
+npm_package: null
+families:
+  - family: Grid® widgets
+    docs: https://documentation.g2.com/docs/widgets
+    components:
+      - name: Live Category Grid™
+        kind: iframe embed
+        embed_pattern: https://www.g2.com/categories/{category-slug}/grids.embed
+        refresh: daily
+        description: Live rendering of the product's position on the category Grid®.
+      - name: Report-based Grid™
+        kind: iframe embed
+        embed_pattern: https://www.g2.com/reports/{report-uuid}/products/{product-slug}/grid.embed
+        refresh: static, per reporting period
+  - family: Review collection widgets
+    docs: https://documentation.g2.com/docs/review-collection-widgets
+    configure: https://my.g2.com/~/widgets/review_collection_widgets
+    components:
+      - name: Review Us Button
+        kind: embed snippet
+        description: >-
+          Customizable button that opens the G2 review form in a pop-up overlay
+          on the vendor's own page; reviewer login is deferred until after
+          submission to improve conversion.
+      - name: Review Us Widget
+        kind: embed snippet
+        description: Inline review-collection surface for websites, landing pages, sidebars and email signatures.
+  - family: Grid® render endpoints
+    docs: https://www.g2.com/llms.txt
+    auth: none
+    components:
+      - name: Grid® image (PNG)
+        url_pattern: https://www.g2.com/categories/{category-slug}/grids.png
+      - name: Grid® image (SVG)
+        url_pattern: https://www.g2.com/categories/{category-slug}/grids.svg
+      - name: Grid® data (JSON)
+        url_pattern: https://www.g2.com/categories/{category-slug}/grids.json
+        description: Products, scores and quadrant positions behind the rendered Grid®.
+    parameters:
+      focus[]: >-
+        Repeatable, up to 5 product slugs. Focused products are highlighted while
+        the rest fade back. Example
+        https://www.g2.com/categories/crm/grids.json?focus[]=salesforce-crm
+    note: >-
+      Published by G2 specifically for AI assistants in www.g2.com/llms.txt.
+      These are real unauthenticated data endpoints and they appear in none of
+      the three OpenAPI documents G2 publishes.
+support_note: >-
+  "G2 does not provide support for widgets that fail to render appropriately due
+  to modified CSS."

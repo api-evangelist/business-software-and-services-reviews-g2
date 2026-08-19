@@ -1,0 +1,105 @@
+generated: '2026-08-14'
+method: derived
+source: >-
+  openapi/business-software-and-services-reviews-g2-v2-openapi.yml,
+  openapi/business-software-and-services-reviews-g2-data-solutions-openapi.yml,
+  well-known/business-software-and-services-reviews-g2-openid-configuration.json,
+  well-known/business-software-and-services-reviews-g2-mcp-oauth-protected-resource.json,
+  https://trust.g2.com/
+description: >-
+  Which cross-cutting standards the G2 API actually conforms to, judged from the
+  published contract and discovery documents rather than from marketing claims.
+  G2's strongest conformance is on the identity side — a complete OIDC discovery
+  document, OAuth 2.0 authorization-code with PKCE, and RFC 9728 protected-resource
+  metadata for its MCP server. Its weakest is error semantics: JSON:API errors
+  with no machine-readable codes and no RFC 9457.
+standards:
+  - id: openapi-3.0
+    conforms: true
+    evidence: >-
+      Two published OpenAPI 3.0.1 documents served from data.g2.com and wired
+      into a Swagger UI at /api/v2/docs/index.html; a third (OpenAPI 3.0.1)
+      served at www.g2.com/openai.json for the ChatGPT plugin.
+  - id: jsonapi
+    conforms: true
+    evidence: >-
+      197 of 198 response bodies use application/vnd.api+json; data/type/id/
+      attributes/relationships resource objects, top-level included[] compound
+      documents, fields[<type>] sparse fieldsets, and a JSON:API errors[] envelope.
+  - id: oauth2
+    conforms: true
+    evidence: >-
+      G2OAuth securityScheme, authorizationCode flow, authorize
+      https://www.g2.com/oauth/authorize, token https://www.g2.com/oauth/token,
+      revocation and introspection endpoints published.
+  - id: oauth2-pkce
+    conforms: true
+    evidence: >-
+      code_challenge_methods_supported ["plain","S256"] in the discovery
+      document; the MCP integration guide requires Authorization Code with PKCE.
+  - id: oidc
+    conforms: true
+    evidence: >-
+      /.well-known/openid-configuration on www.g2.com with issuer, userinfo,
+      jwks_uri, id_token_signing_alg_values_supported [RS256], pairwise subject
+      types, and openid/profile scopes.
+  - id: rfc8414-oauth-authorization-server-metadata
+    conforms: true
+    evidence: /.well-known/oauth-authorization-server returns 200 on www.g2.com.
+  - id: rfc9728-oauth-protected-resource-metadata
+    conforms: true
+    evidence: >-
+      https://mcp.g2.com/.well-known/oauth-protected-resource/mcp returns the
+      resource, authorization_servers, scopes_supported and bearer_methods_supported;
+      advertised by WWW-Authenticate on a 401 from the MCP endpoint.
+  - id: rfc7591-dynamic-client-registration
+    conforms: false
+    evidence: >-
+      G2 states explicitly that its OAuth server does not support Dynamic Client
+      Registration; clients must pre-register in the Developer Portal.
+  - id: mcp
+    conforms: true
+    evidence: >-
+      Hosted remote MCP server at https://mcp.g2.com/mcp, 21 documented tools,
+      OAuth-protected, listed as a connector in Claude and ChatGPT.
+  - id: rfc9457-problem-details
+    conforms: false
+    evidence: >-
+      Zero occurrences of application/problem+json. Errors use the JSON:API
+      errors[] shape with only status and title.
+  - id: rfc8594-sunset-header
+    conforms: false
+    evidence: No Sunset or Deprecation headers declared in either specification.
+  - id: idempotency-key
+    conforms: false
+    evidence: No Idempotency-Key header or replay semantics anywhere in the contract.
+  - id: cursor-pagination
+    conforms: true
+    evidence: page[size] / page[after] / page[before] with a cursor_pagination links object (next/prev/self).
+  - id: rate-limit-headers
+    conforms: false
+    evidence: >-
+      No RateLimit-* or X-RateLimit-* headers and no 429 declared; the 100 rps
+      limit is enforced by a 60-second Cloudflare block with no runtime signal.
+  - id: asyncapi
+    conforms: false
+    evidence: >-
+      No AsyncAPI document published. G2 does operate an outbound lead-delivery
+      webhook, but it is configured per-tenant in my.G2 with no event schema.
+  - id: a2a
+    conforms: false
+    evidence: >-
+      No agent card at /.well-known/agent-card.json or /.well-known/agent.json on
+      any of the four G2 hosts probed.
+  - id: llms-txt
+    conforms: true
+    evidence: llms.txt served on both documentation.g2.com and www.g2.com; every docs page also resolves as .md.
+  - id: gdpr
+    conforms: true
+    evidence: Listed on https://trust.g2.com/ — see security/business-software-and-services-reviews-g2-trust-center.yml
+  - id: soc2
+    conforms: true
+    evidence: Listed on https://trust.g2.com/
+  - id: csa-star
+    conforms: true
+    evidence: Listed on https://trust.g2.com/

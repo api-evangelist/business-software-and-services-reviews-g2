@@ -1,0 +1,158 @@
+generated: '2026-08-14'
+method: derived
+source: >-
+  openapi/business-software-and-services-reviews-g2-v2-openapi.yml — JSON:API
+  resource `type` values and `relationships` keys mined from the 190 response
+  examples embedded in the specification, plus the include/fields[] parameters
+  declared on 29 operations.
+description: >-
+  The G2 API V2 entity graph. G2 is a JSON:API service, so the data model is not
+  expressed in components.schemas — the spec declares only four generic schemas
+  (cursor_pagination, included, Errors, http_error) and carries the real shapes
+  in per-operation examples. This artifact reconstructs the graph from those
+  examples. Product is the hub: every content type (reviews, screenshots,
+  discussions, videos, downloads, snippets, badges, features) belongs to a
+  product, products belong to a vendor and attach to many categories, and the
+  category taxonomy is itself a self-referencing tree (parent/children/
+  ancestors/descendants). Buyer intent sits apart — it is an analytical
+  aggregation keyed by company, not a resource with relationships.
+identifiers:
+  format: UUID v4
+  slug: >-
+    products, discussions and categories also carry a human-readable slug, and
+    several filters accept "product UUIDs or slugs" interchangeably.
+  prefixes: none — G2 does not use typed id prefixes.
+traversal:
+  include: Related resources are requested with `include` and returned in a top-level included[] array.
+  sparse: 'fields[<type>] restricts the attributes returned per resource type.'
+entities:
+  - name: products
+    hub: true
+    operations: [getProducts, getProduct, getCurrentUserProducts]
+    key_attributes: [name, slug, domain, detail_description, g2_url, image_url, public_detail_url, review_count, star_rating, write_review_url]
+    relationships:
+      - {to: vendors, kind: belongs_to, via: vendor}
+      - {to: product_categories, kind: has_many, via: categories}
+      - {to: discussions, kind: has_many, via: discussions}
+      - {to: screenshots, kind: has_many, via: screenshots}
+  - name: vendors
+    operations: [getVendors, getVendor]
+    relationships:
+      - {to: products, kind: has_many, via: products}
+      - {to: products, kind: has_one, via: primary_product}
+  - name: categories
+    aliases: [product_categories]
+    operations: [getCategories, getCategory]
+    self_referencing: true
+    relationships:
+      - {to: categories, kind: belongs_to, via: parent}
+      - {to: categories, kind: has_many, via: children}
+      - {to: categories, kind: has_many, via: ancestors}
+      - {to: categories, kind: has_many, via: descendants}
+      - {to: products, kind: has_many, via: products}
+  - name: reviews
+    operations: [getProductReviews, getCurrentUserProductReview, submitCurrentUserProductReview, getDataSolutionsReviews]
+    relationships:
+      - {to: products, kind: belongs_to, via: product}
+      - {to: users, kind: belongs_to, via: user}
+      - {to: answers, kind: has_many, via: answers}
+    note: >-
+      Two projections exist — the standard JSON:API review resource, and the flat
+      enriched Data Solutions projection (separate spec, ds_reviews.read scope).
+  - name: answers
+    note: Question responses attached to a review; the survey payload of a G2 review.
+    relationships:
+      - {to: reviews, kind: belongs_to, via: review}
+  - name: discussions
+    operations: [getProductDiscussions]
+    relationships:
+      - {to: products, kind: belongs_to, via: product}
+      - {to: users, kind: belongs_to, via: user}
+      - {to: comments, kind: has_many, via: comments}
+  - name: questions
+    operations: [getQuestions, getQuestion]
+    relationships:
+      - {to: answers, kind: has_many, via: answers}
+  - name: users
+    operations: [getCurrentUser]
+  - name: screenshots
+    operations: [getScreenshots, getScreenshot, getProductScreenshots]
+    relationships:
+      - {to: products, kind: belongs_to, via: product}
+  - name: product_videos
+    operations: [getProductVideos]
+    relationships: [{to: products, kind: belongs_to, via: product}]
+  - name: video_reviews
+    operations: [getProductVideoReviews]
+    relationships: [{to: products, kind: belongs_to, via: product}]
+  - name: downloads
+    operations: [getProductDownloads]
+    relationships: [{to: products, kind: belongs_to, via: product}]
+  - name: snippets
+    operations: [getProductSnippets]
+    relationships: [{to: products, kind: belongs_to, via: product}]
+  - name: integration_reviews
+    operations: [getProductIntegrationReviews]
+    relationships: [{to: products, kind: belongs_to, via: product}]
+  - name: medals
+    label: Badges
+    operations: [getProductMedals]
+    relationships: [{to: products, kind: belongs_to, via: product}]
+  - name: grid_reports
+    operations: [getGridReports]
+    relationships:
+      - {to: products, kind: has_many, via: products}
+      - {to: categories, kind: belongs_to, via: category}
+  - name: buyer_intent
+    analytical: true
+    operations: [getGlobalBuyerIntentInteractions, getBuyerIntentInteractions, getSandboxBuyerIntentInteractions]
+    query_model: >-
+      OLAP-style — dimensions (company_name, company_domain, day),
+      measures (total_activity, visitor_count, company_intent_score) and
+      dimension_filters[<name>_<op>]. Aggregated by default; add the `day`
+      dimension for a time series.
+    note: >-
+      Not a CRUD resource. Rows are company-level aggregations keyed by company
+      domain, with no relationship edges into products/vendors — the product is
+      a path parameter (subject_product_id), not a relationship.
+  - name: research_boards
+    operations: [listResearchBoards, getResearchBoard, createResearchBoard, updateResearchBoard, deleteResearchBoard]
+    writable: true
+    relationships:
+      - {to: products, kind: has_many, via: products}
+      - {to: users, kind: belongs_to, via: user}
+  - name: product_mappings
+    operations: [getProductMappings, createProductMapping, updateProductMapping]
+    writable: true
+    note: Maps a partner's own product identifiers onto G2 product UUIDs.
+  - name: data_subscriptions
+    operations: [getPartnerDataSubscriptions, createPartnerDataSubscription, deletePartnerDataSubscription]
+    writable: true
+    relationships:
+      - {to: categories, kind: has_many, via: subscribed_categories}
+  - name: credit_account
+    operations: [getOrganizationCreditAccount, getOrganizationCreditDeductions]
+    relationships:
+      - {to: deductions, kind: has_many, via: deductions}
+  - name: unlocked_companies
+    label: G2 Activate
+    operations: [getG2ActivateUnlockedCompanies, getG2ActivateUnlockedCompany]
+    siblings: [locked_companies, industry_matches]
+    note: Company records unlocked against the organization's credit account.
+  - name: performance_analytics
+    operations: [getPerformanceAnalyticsActivationStatus, getPerformanceAnalyticsIntegrationHealth, getPerformanceAnalyticsDataQuality, getPerformanceAnalyticsRoiSummary, getPerformanceAnalyticsRoiTrend]
+    resource_types: [performance_analytics_activation_status, performance_analytics_integration_health, performance_analytics_integration_data_quality, performance_analytics_roi_summary, performance_analytics_roi_trend]
+    note: Per-integration ROI and health metrics; one resource type per report shape.
+relationships_summary:
+  hub: products
+  strongest_edges:
+    - products -> vendor (belongs_to)
+    - products -> categories (has_many)
+    - products -> discussions / screenshots / reviews / videos / downloads / snippets / medals (has_many)
+    - categories -> parent / children / ancestors / descendants (self-referencing tree)
+    - reviews -> user, answers
+gaps:
+  - >-
+    components.schemas contains only four generic envelope schemas; no product,
+    review, vendor or category schema is declared. Every concrete shape lives in
+    an example, so generated clients get untyped objects.

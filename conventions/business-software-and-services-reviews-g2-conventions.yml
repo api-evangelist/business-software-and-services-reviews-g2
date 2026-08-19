@@ -1,0 +1,141 @@
+generated: '2026-08-14'
+method: searched
+source: >-
+  https://data.g2.com/openapi/v2.yaml + https://data.g2.com/openapi/data_solutions.yaml
+  (62 operations), https://documentation.g2.com/docs/developer-portal,
+  https://documentation.g2.com/docs/g2-mcp-server
+description: >-
+  Cross-cutting request/response semantics of the G2 API V2. G2 is a JSON:API
+  implementation — application/vnd.api+json, data/included/relationships
+  documents, sparse fieldsets, compound documents via include, and a JSON:API
+  errors[] envelope — layered with cursor pagination and Ransack-style filter
+  operators. Idempotency is NOT supported and no request-id tracing header is
+  documented.
+base_url: https://data.g2.com
+api_style: >-
+  REST over HTTPS following JSON:API 1.0 conventions; JSON request bodies, JSON:API
+  media type responses.
+media_type:
+  responses: application/vnd.api+json
+  note: >-
+    197 of 198 declared response bodies use application/vnd.api+json; the single
+    exception is application/json.
+authentication:
+  schemes:
+    - name: AccountAPIToken
+      style: HTTP Bearer
+      detail: >-
+        Access token generated in the G2 Developer Portal, scoped to a User or an
+        Organization, with per-endpoint permissions chosen at issue time.
+        Tokens expire one year after creation and must be regenerated.
+      applies_to: 52 of 62 operations
+    - name: G2OAuth
+      style: OAuth 2.0 Authorization Code with PKCE
+      authorization_url: https://www.g2.com/oauth/authorize
+      token_url: https://www.g2.com/oauth/token
+      detail: >-
+        Pre-registered OAuth apps only; G2 does not support Dynamic Client
+        Registration. Confidential and public clients both supported.
+      applies_to: 38 operation-level scope requirements
+  discovery: well-known/business-software-and-services-reviews-g2-openid-configuration.json
+  docs: https://documentation.g2.com/docs/developer-portal
+  detail: authentication/business-software-and-services-reviews-g2-authentication.yml
+  scopes: scopes/business-software-and-services-reviews-g2-scopes.yml
+idempotency:
+  supported: false
+  mechanism: null
+  note: >-
+    No Idempotency-Key header, parameter or documented replay semantics anywhere
+    in the 62 published operations or the developer documentation. The write
+    surface is small (research boards, product mappings, data subscriptions,
+    review submission, G2 Activate industry search) but a retried POST is not
+    safe. No Idempotency pointer is emitted for this provider.
+pagination:
+  style: cursor
+  request_params:
+    page[size]: 'Records per page. Data Solutions: default 25, max 250. V2 endpoints commonly default 10-25.'
+    page[after]: Cursor for the next page of results
+    page[before]: Cursor for the previous page of results
+  deprecated_params:
+    per_page: >-
+      Deprecated alias for page[size] (max 50). page[size] takes precedence.
+      Marked deprecated: true in the spec.
+  response_fields:
+    links.next: Cursor URL for the next page, nullable
+    links.prev: Cursor URL for the previous page, nullable
+    links.self: Cursor URL for the current page, nullable
+  schema: cursor_pagination
+  note: page[size]/page[after]/page[before] appear on 28-29 operations each.
+sparse_fieldsets:
+  supported: true
+  mechanism: 'fields[<type>] — e.g. fields[products], fields[product_features]'
+  note: JSON:API sparse fieldsets; restricts returned attributes per resource type.
+compound_documents:
+  supported: true
+  mechanism: include query parameter (29 operations)
+  response_field: included[]
+  schema: included
+  note: >-
+    JSON:API compound documents. Related resources (categories, vendors,
+    discussions, users) are returned in a top-level included[] array rather than
+    inlined, and referenced from relationships{}.
+filtering:
+  style: Ransack-style suffixed filter parameters
+  mechanism: 'filter[<field>_<op>] and filter[<field>][]'
+  common_params:
+    - filter[updated_at_gt]
+    - filter[updated_at_lt]
+    - filter[created_at_gt]
+    - filter[created_at_lt]
+    - filter[product_uuid_eq]
+    - filter[is_verified_eq]
+  operators: [_eq, _not_eq, _cont, _not_cont, _gt, _gteq, _lt, _lteq, _present, _empty]
+  note: >-
+    The buyer intent endpoints add an OLAP-style analytical layer on top —
+    dimensions, measures and dimension_filters[<name>_<suffix>] using the same
+    operator vocabulary.
+sorting:
+  mechanism: sort query parameter
+  descending: prefix the field with a minus, e.g. sort=-company_intent_score
+  note: Buyer intent defaults to -company_intent_score (highest intent first).
+identifiers:
+  format: UUID v4
+  note: >-
+    Products, categories, vendors, discussions and research boards are addressed
+    by UUID; products and discussions additionally carry a human slug. Several
+    endpoints accept either a UUID or a slug (filter[product_id][] "product UUIDs
+    or slugs").
+request_tracing:
+  request_id_header: null
+  note: G2 documents no per-request correlation id header.
+versioning:
+  scheme: uri-path
+  current: v2
+  mechanism: /api/v2/ path prefix; there is no version request header.
+  detail: lifecycle/business-software-and-services-reviews-g2-lifecycle.yml
+  changelog: changelog/business-software-and-services-reviews-g2-changelog.yml
+error_envelope:
+  media_type: application/vnd.api+json
+  shape: JSON:API errors array
+  schema: Errors
+  fields:
+    errors[].status: HTTP status as a string
+    errors[].title: Human-readable summary
+    errors[].links: Optional links object, nullable
+    errors[].source: Optional source pointer object, nullable
+  rfc9457: false
+  note: >-
+    G2 does not use application/problem+json and publishes no error type URIs or
+    machine-readable error codes — only a status/title pair. Zero occurrences of
+    problem+json across both specs.
+  detail: errors/business-software-and-services-reviews-g2-problem-types.yml
+rate_limit_signaling:
+  headers: none
+  status_on_exhaustion: null
+  behaviour: >-
+    Cloudflare blocks the source IP for 60 seconds past 100 requests/second. No
+    429 is declared and no rate-limit headers are documented.
+  detail: rate-limits/business-software-and-services-reviews-g2-rate-limits.yml
+sandbox:
+  supported: true
+  detail: sandbox/business-software-and-services-reviews-g2-sandbox.yml

@@ -1,0 +1,107 @@
+generated: '2026-08-14'
+method: searched
+source: >-
+  Live probes of the /.well-known/ discovery surface on every host in apis.yml
+  (baseURL data.g2.com, Website www.g2.com, Portal documentation.g2.com), the
+  OpenAPI servers[] host (data.g2.com), and the MCP host (mcp.g2.com). Status is
+  the HTTP code observed at fetch time.
+description: >-
+  G2 serves a real OIDC/OAuth 2.0 discovery surface on www.g2.com and a ChatGPT
+  plugin manifest that names a second, unauthenticated OpenAPI. mcp.g2.com serves
+  RFC 9728 protected-resource metadata for the G2 MCP server at the sub-path
+  /.well-known/oauth-protected-resource/mcp (the bare path 404s). data.g2.com and
+  documentation.g2.com answer 404 on every well-known path.
+hosts:
+  - host: https://www.g2.com
+    documents:
+      - path: /.well-known/openid-configuration
+        status: 200
+        type: application/json
+        file: business-software-and-services-reviews-g2-openid-configuration.json
+      - path: /.well-known/oauth-authorization-server
+        status: 200
+        type: application/json
+        file: business-software-and-services-reviews-g2-oauth-authorization-server.json
+        note: Byte-identical to the openid-configuration document.
+      - path: /.well-known/ai-plugin.json
+        status: 200
+        type: application/json
+        file: business-software-and-services-reviews-g2-ai-plugin.json
+        note: >-
+          ChatGPT plugin manifest. auth.type is "none" and api.url points at
+          https://www.g2.com/openai.json — a second, unauthenticated 2-operation
+          OpenAPI harvested to openapi/business-software-and-services-reviews-g2-chatgpt-plugin-openapi.json
+      - path: /.well-known/security.txt
+        status: 404
+      - path: /.well-known/oauth-protected-resource
+        status: 404
+      - path: /.well-known/api-catalog
+        status: 404
+      - path: /.well-known/agent-card.json
+        status: 404
+      - path: /.well-known/agent.json
+        status: 404
+  - host: https://mcp.g2.com
+    documents:
+      - path: /.well-known/oauth-protected-resource/mcp
+        status: 200
+        type: application/json
+        file: business-software-and-services-reviews-g2-mcp-oauth-protected-resource.json
+        note: >-
+          RFC 9728 protected-resource metadata for the G2 MCP server. Advertised
+          by the WWW-Authenticate header on a 401 from POST https://mcp.g2.com/mcp.
+      - path: /.well-known/oauth-protected-resource
+        status: 404
+      - path: /.well-known/oauth-authorization-server
+        status: 404
+      - path: /.well-known/agent-card.json
+        status: 404
+      - path: /.well-known/agent.json
+        status: 404
+  - host: https://data.g2.com
+    documents:
+      - path: /.well-known/security.txt
+        status: 404
+      - path: /.well-known/openid-configuration
+        status: 404
+      - path: /.well-known/oauth-authorization-server
+        status: 404
+      - path: /.well-known/oauth-protected-resource
+        status: 404
+      - path: /.well-known/api-catalog
+        status: 404
+      - path: /.well-known/ai-plugin.json
+        status: 404
+      - path: /.well-known/agent-card.json
+        status: 404
+      - path: /.well-known/agent.json
+        status: 404
+  - host: https://documentation.g2.com
+    documents:
+      - path: /.well-known/security.txt
+        status: 404
+      - path: /.well-known/openid-configuration
+        status: 404
+      - path: /.well-known/oauth-authorization-server
+        status: 404
+      - path: /.well-known/oauth-protected-resource
+        status: 404
+      - path: /.well-known/api-catalog
+        status: 404
+      - path: /.well-known/ai-plugin.json
+        status: 404
+      - path: /.well-known/agent-card.json
+        status: 404
+      - path: /.well-known/agent.json
+        status: 404
+security_txt:
+  served: false
+  note: >-
+    No /.well-known/security.txt on any G2 host, and https://www.g2.com/security
+    returns 404. No SecurityTxt pointer is emitted.
+agent_card:
+  found: false
+  note: >-
+    Probed /.well-known/agent-card.json and the legacy /.well-known/agent.json on
+    www.g2.com, data.g2.com, documentation.g2.com and mcp.g2.com. All 404. No A2A
+    artifact was written and no AgentCard pointer is emitted.

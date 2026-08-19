@@ -1,0 +1,26 @@
+generated: '2026-08-14'
+method: generated
+source: >-
+  Grounded in operationIds verified against
+  openapi/business-software-and-services-reviews-g2-v2-openapi.yml and
+  openapi/business-software-and-services-reviews-g2-data-solutions-openapi.yml,
+  plus the runtime semantics captured in
+  conventions/business-software-and-services-reviews-g2-conventions.yml and
+  errors/business-software-and-services-reviews-g2-problem-types.yml.
+description: >-
+  Packaged Agent Skills for the G2 API V2, one per marquee flow. G2 publishes no
+  AGENTS.md or provider-authored skills; these are generated from the real
+  contract. Every operationId referenced was grepped out of the published spec.
+skills:
+  - file: business-software-and-services-reviews-g2-buyer-intent-triage.md
+    name: Triage G2 buyer intent into a prioritized account list
+    api: openapi/business-software-and-services-reviews-g2-v2-openapi.yml
+    operations: [getCurrentUserProducts, getBuyerIntentInteractions, getSandboxBuyerIntentInteractions, getProductCompetitors]
+  - file: business-software-and-services-reviews-g2-sync-reviews.md
+    name: Incrementally sync G2 reviews for a product
+    api: openapi/business-software-and-services-reviews-g2-v2-openapi.yml
+    operations: [getProducts, getProduct, getProductReviews, getProductRatings, getDataSolutionsReviews]
+  - file: business-software-and-services-reviews-g2-research-board.md
+    name: Build and maintain a G2 research board
+    api: openapi/business-software-and-services-reviews-g2-v2-openapi.yml
+    operations: [listResearchBoards, createResearchBoard, getResearchBoard, updateResearchBoard, deleteResearchBoard, listResearchBoardProducts, addProductToResearchBoard, batchAddProductsToResearchBoard, removeProductFromResearchBoard, batchRemoveProductsFromResearchBoard, getProducts]

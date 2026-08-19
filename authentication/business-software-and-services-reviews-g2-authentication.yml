@@ -1,0 +1,80 @@
+generated: '2026-08-14'
+method: searched
+source: openapi/business-software-and-services-reviews-g2-v2-openapi.yml, openapi/business-software-and-services-reviews-g2-data-solutions-openapi.yml,
+  https://documentation.g2.com/docs/developer-portal, https://documentation.g2.com/docs/g2-mcp-server,
+  https://www.g2.com/.well-known/openid-configuration
+summary:
+  types:
+  - http
+  - oauth2
+  oauth2_flows:
+  - authorizationCode
+schemes:
+- name: AccountAPIToken
+  type: http
+  scheme: bearer
+  sources:
+  - openapi/business-software-and-services-reviews-g2-data-solutions-openapi.yml
+  - openapi/business-software-and-services-reviews-g2-v2-openapi.yml
+- name: G2OAuth
+  type: oauth2
+  flows:
+  - flow: authorizationCode
+    authorizationUrl: https://www.g2.com/oauth/authorize
+    tokenUrl: https://www.g2.com/oauth/token
+    scopes: 6
+  sources:
+  - openapi/business-software-and-services-reviews-g2-data-solutions-openapi.yml
+  - openapi/business-software-and-services-reviews-g2-v2-openapi.yml
+docs: https://documentation.g2.com/docs/developer-portal
+description: G2 runs two parallel auth models against the same API. AccountAPIToken is an HTTP Bearer
+  access token issued self-serve in the G2 Developer Portal, scoped to a User or an Organization, with
+  per-endpoint permissions chosen at issue time and a hard one-year expiry; it secures 52 of the 62 published
+  operations. G2OAuth is OAuth 2.0 Authorization Code with PKCE against G2's own authorization server,
+  used for delegated access and required by the MCP server. G2 does NOT support RFC 7591 Dynamic Client
+  Registration — OAuth apps are pre-registered by hand — and its authorization callback omits the `state`
+  parameter, which breaks stock MCP SDK callback handlers.
+discovery:
+  openid_configuration: well-known/business-software-and-services-reviews-g2-openid-configuration.json
+  oauth_authorization_server: well-known/business-software-and-services-reviews-g2-oauth-authorization-server.json
+  mcp_protected_resource: well-known/business-software-and-services-reviews-g2-mcp-oauth-protected-resource.json
+  issuer: https://g2.com
+  authorization_endpoint: https://www.g2.com/oauth/authorize
+  token_endpoint: https://www.g2.com/oauth/token
+  revocation_endpoint: https://www.g2.com/oauth/revoke
+  introspection_endpoint: https://www.g2.com/oauth/introspect
+  userinfo_endpoint: https://www.g2.com/oauth/userinfo
+  jwks_uri: https://www.g2.com/oauth/discovery/keys
+  id_token_signing_alg: RS256
+  subject_types: pairwise
+  pkce_methods:
+  - plain
+  - S256
+  grant_types:
+  - authorization_code
+  - implicit_oidc
+  - refresh_token
+  token_endpoint_auth_methods:
+  - client_secret_basic
+  - client_secret_post
+registration:
+  url: https://my.g2.com/developers
+  dynamic_client_registration: false
+  confidential_clients: true
+  public_clients: true
+  note: Register the OAuth app in the Developer Portal, choose per-endpoint Read permissions, and read
+    client_id/client_secret from the app details panel. Requested scopes must match enabled permissions
+    or the token request fails with "requested scope is invalid, unknown, or malformed".
+tokens:
+  access_token_lifetime: 1 year (Developer Portal access tokens)
+  refresh: refresh_token grant supported on the OAuth path
+  resource_owner: User or Organization, chosen at token creation
+  transport: 'Authorization: Bearer <token>'
+deviations:
+- No RFC 7591 Dynamic Client Registration.
+- Authorization callback returns `code` without `state`.
+- The MCP server validates tokens via G2's introspection endpoint using its own credentials; without cross-application
+  token introspection enabled on your OAuth app you get 401 after a successful OAuth flow.
+scopes: scopes/business-software-and-services-reviews-g2-scopes.yml
+unauthenticated_surface: openapi/business-software-and-services-reviews-g2-chatgpt-plugin-openapi.json
+  declares auth type "none" for two product/report search operations on www.g2.com.
