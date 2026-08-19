@@ -298,7 +298,7 @@ common:
 maintainers:
   - FN: Kin Lane
     email: kin@apievangelist.com
-specificationVersion: '0.19'
+specificationVersion: '0.23'
 x-enrichment:
   date: '2026-08-14'
   status: enriched
