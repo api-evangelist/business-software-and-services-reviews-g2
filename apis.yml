@@ -4,6 +4,15 @@ url: >-
 name: Business Software and Services Reviews | G2
 tags:
   - B2B
+  - Software-as-a-Service
+  - Software Reviews
+  - Buyer Intent
+  - Competitive Intelligence
+  - Market Intelligence
+  - Marketplace
+  - MCP
+tags_raw:
+  - B2B
   - SaaS
   - Software Reviews
   - Buyer Intent
@@ -95,6 +104,10 @@ apis:
       business-software-and-services-reviews-g2:g2-buyer-intent-data
     name: G2 Buyer Intent Data API
     tags:
+      - B2B
+      - Buyer Intent
+      - Software-as-a-Service
+    tags_raw:
       - B2B
       - Buyer Intent
       - SaaS
