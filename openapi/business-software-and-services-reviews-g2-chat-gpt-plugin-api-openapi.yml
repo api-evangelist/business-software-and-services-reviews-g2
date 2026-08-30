@@ -1,0 +1,62 @@
+openapi: 3.2.0
+info:
+  title: G2.com Chat Gpt Plugin API
+  description: Find the best software & services for your business needs
+  version: v1
+servers:
+- url: https://www.g2.com/
+tags:
+- name: Chat Gpt Plugin
+paths:
+  /chat_gpt_plugin/products:
+    get:
+      operationId: findProductByName
+      summary: Search for a specific product
+      parameters:
+      - in: query
+        name: name
+        schema:
+          type: string
+        required: true
+        description: String match against specific product's name or description
+      - in: query
+        name: keywords
+        schema:
+          type: string
+        required: false
+        description: Additional keywords to match against product name and description.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/product_list'
+      tags:
+      - Chat Gpt Plugin
+  /chat_gpt_plugin/reports:
+    get:
+      operationId: findProductByType
+      summary: Search for best products by type, based on G2 Report data
+      parameters:
+      - in: query
+        name: software_type
+        schema:
+          type: string
+        required: true
+        description: String match against type or category of product
+      - in: query
+        name: keywords
+        schema:
+          type: string
+        required: false
+        description: Additional keywords to match against features, problems solved, or category info.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/report_list'
+      tags:
+      - Chat Gpt Plugin

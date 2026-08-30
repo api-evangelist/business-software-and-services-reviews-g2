@@ -1,0 +1,739 @@
+openapi: 3.2.0
+info:
+  title: G2 Data Solutions Data Solutions Reviews API
+  version: v2
+  description: Data Solutions API providing enriched review data with flat attribute structures.
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Data Solutions Reviews
+paths:
+  /api/v2/data_solutions/reviews:
+    get:
+      summary: Lists reviews with all Data Solutions fields
+      operationId: getDataSolutionsReviews
+      tags:
+      - Data Solutions Reviews
+      description: '**Requires `ds_reviews.read` scope.**
+
+
+
+        **⚠️ BETA API**: This endpoint is a beta endpoint and it definition might change by the official release.
+
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: filter[product_id][]
+        in: query
+        required: false
+        description: Filter by product UUIDs or slugs
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[updated_at_gt]
+        description: Filter records updated after this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[updated_at_lt]
+        description: Filter records updated before this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[category_ids][]
+        description: Filter reviews by category IDs
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[comment_answer_values_exclude]
+        description: Exclude reviews with specific comment answer values
+        in: query
+        schema:
+          type: string
+      - name: filter[company_segment][]
+        description: "Filter by company size segment\n\n - Company Segment ID: `179` => `Small-Business` *(0-50 employees)*\n\n - Company Segment ID: `180` => `Mid-Market` *(51-1000 employees)*\n\n - Company Segment ID: `181` => `Enterprise` *(1001-Infinity employees)*\n\n"
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[country][]
+        description: Filter by country names
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[industry][]
+        description: Filter by industry IDs
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[nps_score][]
+        description: Filter by NPS scores (0-10)
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[region][]
+        description: Filter by geographic regions
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[role][]
+        description: Filter by user role IDs
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[product_id][]
+        description: Filter by product UUIDs or slugs
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: fields[reviews]
+        in: query
+        description: Comma-separated list of fields to include. All 55 Data Solutions fields are available as flat attributes.
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - url
+            - slug
+            - title
+            - star_rating
+            - published_at
+            - submitted_at
+            - user_updated_at
+            - product_name
+            - country_name
+            - source
+            - review_incentive
+            - verified_current_user
+            - comments_present
+            - official_response_present
+            - is_public
+            - percent_complete
+            - default_sort
+            - regions
+            - attribution
+            - love
+            - hate
+            - benefits
+            - recommendations
+            - meets_requirements
+            - price
+            - ease_of_setup
+            - likely_to_recommend
+            - nps
+            - ease_of_admin
+            - ease_of_use
+            - quality_of_support
+            - ease_of_doing_business_with
+            - company_segment
+            - role
+            - company_size
+            - industry
+            - user_title
+            - company
+            - experience_level
+            - implementation
+            - go_live_time
+            - estimated_roi
+            - annual_cost
+            - setup_cost
+            - contract_length
+            - discount
+            - users_purchased
+            - frequency_of_use
+            - deployment
+            - implementation_year
+            - adoption
+            - switched_from
+            - switched_from_product
+            - switched_from_product_id
+            - switch_reason
+            - switch_themes
+            - survey_response_id
+            - product_id
+            - categories
+            - direction
+            - organic
+        explode: false
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. user)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - user
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: With all fields included
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000046
+                  type: reviews
+                  attributes:
+                    url: http://www.lvh.me:63479/products/product-one/reviews/product-one-review-121
+                    slug: product-one-review-121
+                    title: Review title
+                    star_rating: 2.5
+                    published_at: '2021-12-01T00:00:00.000-06:00'
+                    submitted_at: '2022-01-01T00:00:00.000-06:00'
+                    user_updated_at: '2022-01-01T00:00:00.000-06:00'
+                    product_name: Product One
+                    country_name: United States
+                    source: Organic review. This review was written entirely without invitation or incentive from G2, a seller, or an affiliate.
+                    review_incentive: false
+                    verified_current_user: false
+                    comments_present: false
+                    official_response_present: false
+                    is_public: true
+                    percent_complete: 0.9
+                    default_sort: 0.8
+                    regions: []
+                    attribution:
+                      text: Verified by G2
+                      url: http://www.lvh.me:63479/products/product-one/reviews/product-one-review-121
+                      logo: http://www.lvh.me:63479/assets/g2-logo-rorange.svg
+                    love: I like...
+                    hate: I dislike...
+                    benefits: I benefit...
+                    recommendations: I recommend...
+                    meets_requirements: 1.0
+                    price: 3.0
+                    ease_of_setup: 0.0
+                    likely_to_recommend: 5.0
+                    nps: -100
+                    ease_of_admin: 1.5
+                    ease_of_use: 2.0
+                    quality_of_support: 2.5
+                    ease_of_doing_business_with: 0.5
+                    company_segment: null
+                    role: null
+                    company_size: null
+                    industry: null
+                    user_title: null
+                    company: null
+                    experience_level: Failed to go Live
+                    implementation: Vendor Services Team
+                    go_live_time: < 1 day
+                    estimated_roi: 24-36 months
+                    annual_cost: $250,000-499,999
+                    setup_cost: $250,000-499,999
+                    contract_length: 1 Year
+                    discount: 21-30%
+                    users_purchased: 5,000-9,999
+                    frequency_of_use: At least once a month
+                    deployment: 'No'
+                    implementation_year: 2006-07
+                    adoption: 11-30%
+                    switched_from: Don't know
+                    switched_from_product: null
+                    switched_from_product_id: null
+                    switch_reason: null
+                    switch_themes: null
+                    survey_response_id: aaaaaaaa-bbbb-4ccc-8ddd-000000000046
+                    product_id: aaaaaaaa-bbbb-4ccc-8ddd-000000000009
+                    categories: null
+                    direction: Don't know
+                    organic: true
+                  relationships:
+                    user:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000041
+                        type: users
+                included:
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000041
+                  type: users
+                  attributes:
+                    industry: Accounting
+                    name: alex smith
+                    first_name: alex
+                    last_name: smith
+                    image: null
+                    company: null
+                    title: null
+                    company_segment: Mid-Market (51-1,000 emp.)
+                links:
+                  self: http://data.example.com/api/v2/data_solutions/reviews?filter%5Bproduct_id%5D%5B%5D=aaaaaaaa-bbbb-4ccc-8ddd-000000000009&filter%5Bupdated_at_gt%5D=&filter%5Bupdated_at_lt%5D=&&filter%5Bcomment_answer_values_exclude%5D=&&&&&&&fields%5Breviews%5D=url,slug,title,star_rating,published_at,submitted_at,user_updated_at,product_name,country_name,source,review_incentive,verified_current_user,comments_present,official_response_present,is_public,percent_complete,default_sort,regions,attribution,love,hate,benefits,recommendations,meets_requirements,price,ease_of_setup,likely_to_recommend,nps,ease_of_admin,ease_of_use,quality_of_support,ease_of_doing_business_with,company_segment,role,company_size,industry,user_title,company,experience_level,implementation,go_live_time,estimated_roi,annual_cost,setup_cost,contract_length,discount,users_purchased,frequency_of_use,deployment,implementation_year,adoption,switched_from,switched_from_product,switched_from_product_id,switch_reason,switch_themes,survey_response_id,product_id,categories,direction,organic&include=user
+                  next: null
+                  prev: null
+                meta:
+                  aggregates:
+                  - filter_name: nps_score
+                    nested_filter_name: null
+                    collection:
+                    - id: 5
+                      text: 5 star
+                      count: 0
+                      checked: false
+                      nested_boxes: []
+                    - id: 4
+                      text: 4 star
+                      count: 0
+                      checked: false
+                      nested_boxes: []
+                    - id: 3
+                      text: 3 star
+                      count: 1
+                      checked: false
+                      nested_boxes: []
+                    - id: 2
+                      text: 2 star
+                      count: 0
+                      checked: false
+                      nested_boxes: []
+                    - id: 1
+                      text: 1 star
+                      count: 0
+                      checked: false
+                      nested_boxes: []
+                    expanded: true
+                  record_count: 1
+                  products:
+                  - name: Product One
+                    domain: example.com
+                    slug: product-one
+                    product_type: Software
+                    star_rating: 2.5
+                    avg_rating: '5.0'
+                    detail_description: Description
+                    review_count: 0
+                    image_url: null
+                    public_detail_url: null
+                    g2crowd_url: http://www.lvh.me:63479/products/product-one/reviews
+                    write_review_url: http://www.lvh.me:63479/products/product-one/take_survey
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                              description: Full URL to the review on G2
+                              format: uri
+                            slug:
+                              type: string
+                              description: URL-friendly identifier
+                              example: great-product-for-our-team
+                            title:
+                              type: string
+                              description: Review title
+                              example: Great product for our team
+                            star_rating:
+                              type: number
+                              description: Star rating (1-5 scale)
+                              example: 4.5
+                            published_at:
+                              type: string
+                              description: When the review was published
+                              format: date-time
+                            submitted_at:
+                              type: string
+                              description: When the review was submitted
+                              format: date-time
+                            user_updated_at:
+                              type: string
+                              description: When the user last updated the review
+                              format: date-time
+                            product_name:
+                              type: string
+                              description: Name of the reviewed product
+                            country_name:
+                              type: string
+                              description: Country of the reviewer
+                            source:
+                              type: string
+                              description: Source of the review (e.g., "G2", "Incentivized")
+                            review_incentive:
+                              type: boolean
+                              description: Whether the review was incentivized
+                            verified_current_user:
+                              type: boolean
+                              description: Whether the reviewer is a verified current user
+                            comments_present:
+                              type: boolean
+                              description: Whether comments are present on the review
+                            official_response_present:
+                              type: boolean
+                              description: Whether vendor has responded
+                            is_public:
+                              type: boolean
+                              description: Whether the review is public
+                            percent_complete:
+                              type: number
+                              description: Completion percentage of the review
+                              example: 0.9
+                            default_sort:
+                              type: number
+                              description: Default sort score for the review
+                            regions:
+                              type: array
+                              items:
+                                type: string
+                              description: Geographic regions associated with the reviewer
+                            attribution:
+                              type: object
+                              description: Attribution information for syndication
+                              properties: {}
+                            love:
+                              type:
+                              - string
+                              - 'null'
+                              description: What do you like best about this product?
+                            hate:
+                              type:
+                              - string
+                              - 'null'
+                              description: What do you dislike about this product?
+                            benefits:
+                              type:
+                              - string
+                              - 'null'
+                              description: What business problems does this product solve?
+                            recommendations:
+                              type:
+                              - string
+                              - 'null'
+                              description: Recommendations to others considering this product
+                            meets_requirements:
+                              type:
+                              - number
+                              - 'null'
+                              description: Meets Requirements rating (1-7 scale)
+                            price:
+                              type:
+                              - number
+                              - 'null'
+                              description: Price rating (1-7 scale)
+                            ease_of_setup:
+                              type:
+                              - number
+                              - 'null'
+                              description: Ease of Setup rating (1-7 scale)
+                            likely_to_recommend:
+                              type:
+                              - number
+                              - 'null'
+                              description: Likelihood to Recommend (0-10 NPS driver)
+                            nps:
+                              type:
+                              - integer
+                              - 'null'
+                              description: 'Net Promoter Score: %Promoters - %Detractors (-100, 0, or 100)'
+                            ease_of_admin:
+                              type:
+                              - number
+                              - 'null'
+                              description: Ease of Admin rating (1-7 scale)
+                            ease_of_use:
+                              type:
+                              - number
+                              - 'null'
+                              description: Ease of Use rating (1-7 scale)
+                            quality_of_support:
+                              type:
+                              - number
+                              - 'null'
+                              description: Quality of Support rating (1-7 scale)
+                            ease_of_doing_business_with:
+                              type:
+                              - number
+                              - 'null'
+                              description: Ease of Doing Business With rating (1-7 scale)
+                            company_segment:
+                              type:
+                              - string
+                              - 'null'
+                              description: Company size segment (Small Business, Mid-Market, Enterprise)
+                              example: Mid-Market
+                            role:
+                              type:
+                              - string
+                              - 'null'
+                              description: Reviewer role (User, Admin, Executive Sponsor, etc.)
+                            company_size:
+                              type:
+                              - string
+                              - 'null'
+                              description: Employee count bucket
+                            industry:
+                              type:
+                              - string
+                              - 'null'
+                              description: Reviewer industry
+                            user_title:
+                              type:
+                              - string
+                              - 'null'
+                              description: Reviewer professional title
+                            company:
+                              type:
+                              - string
+                              - 'null'
+                              description: Reviewer organization name
+                            experience_level:
+                              type:
+                              - string
+                              - 'null'
+                              description: Level of experience with the product (Trial, <1yr, 1-3yr, etc.)
+                            implementation:
+                              type:
+                              - string
+                              - 'null'
+                              description: How the product was implemented (In-House, Vendor, 3rd Party)
+                            go_live_time:
+                              type:
+                              - string
+                              - 'null'
+                              description: Time to go live
+                            estimated_roi:
+                              type:
+                              - string
+                              - 'null'
+                              description: Estimated time to ROI
+                            annual_cost:
+                              type:
+                              - string
+                              - 'null'
+                              description: Annual recurring cost bucket
+                            setup_cost:
+                              type:
+                              - string
+                              - 'null'
+                              description: One-time setup cost bucket
+                            contract_length:
+                              type:
+                              - string
+                              - 'null'
+                              description: Contract term length
+                            discount:
+                              type:
+                              - string
+                              - 'null'
+                              description: Discount percentage bucket
+                            users_purchased:
+                              type:
+                              - string
+                              - 'null'
+                              description: Number of seats purchased bucket
+                            frequency_of_use:
+                              type:
+                              - string
+                              - 'null'
+                              description: Product usage frequency (Daily, Weekly, Monthly, etc.)
+                            deployment:
+                              type:
+                              - string
+                              - 'null'
+                              description: Deployment model (Cloud, On-Premise, Hybrid)
+                            implementation_year:
+                              type:
+                              - string
+                              - 'null'
+                              description: Year the product was implemented
+                            adoption:
+                              type:
+                              - string
+                              - 'null'
+                              description: Percentage of users who have fully adopted the system
+                            switched_from:
+                              type:
+                              - string
+                              - 'null'
+                              description: Whether the reviewer switched from another product (Yes/No/Don't Know)
+                            switched_from_product:
+                              type:
+                              - array
+                              - 'null'
+                              items:
+                                type: string
+                              description: Names of products the reviewer switched from
+                            switched_from_product_id:
+                              type:
+                              - array
+                              - 'null'
+                              items:
+                                type: string
+                              description: G2 UUIDs of products the reviewer switched from
+                            switch_reason:
+                              type:
+                              - string
+                              - 'null'
+                              description: 'Free text: why the reviewer switched products'
+                            switch_themes:
+                              type:
+                              - array
+                              - 'null'
+                              items:
+                                type: string
+                              description: NLP-generated switching themes
+                            survey_response_id:
+                              type: string
+                              description: Review UUID
+                              example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                            product_id:
+                              type: string
+                              description: Product G2 UUID
+                            categories:
+                              type:
+                              - array
+                              - 'null'
+                              items:
+                                type: string
+                              description: G2 category names for this product
+                            direction:
+                              type:
+                              - string
+                              - 'null'
+                              description: Is this product headed in the right direction? (Yes/No/Don't Know)
+                            organic:
+                              type: boolean
+                              description: Whether the review was organically submitted (vs invited/incentivized)
+                        relationships:
+                          type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

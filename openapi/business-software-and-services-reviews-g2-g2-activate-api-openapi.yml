@@ -1,0 +1,728 @@
+openapi: 3.2.0
+info:
+  title: G2 Activate API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: G2 Activate
+paths:
+  /api/v2/products/{product_id}/g2_activate/industry_search:
+    post:
+      summary: Match a free-text business description to NAICS industry names
+      operationId: createG2ActivateIndustrySearch
+      tags:
+      - G2 Activate
+      description: '**Requires `g2_activate.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - g2_activate.read
+      parameters:
+      - name: product_id
+        in: path
+        description: Product UUID or Slug
+        required: true
+        schema:
+          type: string
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: With unknown product id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+              examples:
+                when missing g2_activate.read scope:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: You do not have access to that resource
+                when actor lacks intent_driven_leads component on product:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: You do not have access to that resource
+              example:
+                errors:
+                - status: '403'
+                  title: You do not have access to that resource
+        '400':
+          description: With too-short query
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'query: size cannot be less than 2'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Returns matched industries
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: Payroll Services
+                  type: industry_matches
+                  attributes:
+                    industry: Payroll Services
+                    industry_group: Accounting, Tax Preparation, Bookkeeping, and Payroll Services
+                    sector: Professional, Scientific, and Technical Services
+                    confidence: 90
+                - id: Tax Preparation Services
+                  type: industry_matches
+                  attributes:
+                    industry: Tax Preparation Services
+                    industry_group: Accounting, Tax Preparation, Bookkeeping, and Payroll Services
+                    sector: Professional, Scientific, and Technical Services
+                    confidence: 85
+        '503':
+          description: LLM or embedding backend failure
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '503'
+                  title: AI industry matcher is temporarily unavailable. Retry with backoff.
+              schema:
+                $ref: '#/components/schemas/Errors'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - query
+              properties:
+                query:
+                  type: string
+                  minLength: 2
+                  maxLength: 500
+                  description: Free-text business description to match against NAICS industries
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 20
+                  description: Maximum matches to return (default 8)
+  /api/v2/products/{product_id}/g2_activate/locked_companies:
+    get:
+      summary: Lists locked companies (masked) showing intent for a product
+      operationId: getG2ActivateLockedCompanies
+      tags:
+      - G2 Activate
+      description: '**Requires `g2_activate.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - g2_activate.read
+      parameters:
+      - name: product_id
+        in: path
+        description: Product UUID or Slug
+        required: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - -intent_score
+          - intent_score
+        description: Sort order. Prefix with "-" for descending (e.g. "-intent_score").
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: Actor lacks intent_driven_leads component on product
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Missing g2_activate.read scope
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '403'
+                  title: You do not have access to that resource
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '400':
+          description: With disallowed sort value
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'sort: must be one of: -intent_score, intent_score'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: List of locked companies (masked)
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: ff6dcd83f6feb7f8ab82d06792acf6e20d851e2d66d4867650962b91c4181ad1
+                  type: locked_companies
+                  attributes:
+                    product_id: 5029634d-be8e-49cd-82c9-000000000001
+                    company_country: United States
+                    company_employees: 250
+                    company_annual_revenue: 25000000
+                    intent_score: 87
+                    industry: Payroll Services
+                    industry_group: Accounting, Tax Preparation, Bookkeeping, and Payroll Services
+                - id: 289d6dc95c56ec712cc9d6d62cbd075902339e6bb46b328e74b56ef896b7f588
+                  type: locked_companies
+                  attributes:
+                    product_id: 5029634d-be8e-49cd-82c9-000000000001
+                    company_country: Canada
+                    company_employees: 30
+                    company_annual_revenue: 3000000
+                    intent_score: 55
+                    industry: Advertising Agencies
+                    industry_group: Advertising, Public Relations, and Related Services
+                links:
+                  self: http://data.example.com/api/v2/products/5029634d-be8e-49cd-82c9-000000000001/g2_activate/locked_companies?sort=
+                  next: null
+                  prev: null
+  /api/v2/products/{product_id}/g2_activate/unlocked_companies:
+    get:
+      summary: Lists unlocked companies for a product
+      operationId: getG2ActivateUnlockedCompanies
+      tags:
+      - G2 Activate
+      description: '**Requires `g2_activate.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - g2_activate.read
+      parameters:
+      - name: product_id
+        in: path
+        description: Product UUID or Slug
+        required: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - -intent_score
+          - unlocked_at
+          - -unlocked_at
+        description: Sort order. Prefix with "-" for descending (e.g. "-intent_score").
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: fields[unlocked_companies]
+        in: query
+        explode: false
+        description: Comma separated list of fields for unlocked_companies to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - product_id
+            - company_name
+            - company_country
+            - company_employees
+            - intent_score
+            - credit_cost
+            - viewed_at
+            - unlocked_at
+            - contacts
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: Actor lacks intent_driven_leads component on product
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Missing g2_activate.read scope
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '403'
+                  title: You do not have access to that resource
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '400':
+          description: With disallowed sort value
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'sort: must be one of: -intent_score, unlocked_at, -unlocked_at'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: List of unlocked companies
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000003
+                  type: unlocked_companies
+                  attributes:
+                    product_id: 23cf363c-eabb-455c-8f4f-000000000001
+                    company_name: Gamma Ltd
+                    company_country: United Kingdom
+                    company_employees: 51-200
+                    intent_score: 25
+                    credit_cost: 1
+                    viewed_at: null
+                    unlocked_at: '2021-12-31T00:00:00-06:00'
+                    contacts: null
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000002
+                  type: unlocked_companies
+                  attributes:
+                    product_id: 23cf363c-eabb-455c-8f4f-000000000001
+                    company_name: Beta Industries
+                    company_country: Canada
+                    company_employees: 201-500
+                    intent_score: 60
+                    credit_cost: 3
+                    viewed_at: null
+                    unlocked_at: '2021-12-30T00:00:00-06:00'
+                    contacts: null
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000001
+                  type: unlocked_companies
+                  attributes:
+                    product_id: 23cf363c-eabb-455c-8f4f-000000000001
+                    company_name: Acme Corp
+                    company_country: United States
+                    company_employees: 1001-5000
+                    intent_score: 92
+                    credit_cost: 5
+                    viewed_at: null
+                    unlocked_at: '2021-12-29T00:00:00-06:00'
+                    contacts: null
+                links:
+                  self: http://data.example.com/api/v2/products/23cf363c-eabb-455c-8f4f-000000000001/g2_activate/unlocked_companies?sort=&fields%5Bunlocked_companies%5D=product_id,company_name,company_country,company_employees,intent_score,credit_cost,viewed_at,unlocked_at,contacts
+                  next: null
+                  prev: null
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            product_id:
+                              type: string
+                              description: UUID of the product this company was unlocked for
+                              format: uuid
+                            company_name:
+                              type: string
+                              description: Display name of the unlocked company
+                              example: Salesforce
+                            company_country:
+                              type:
+                              - string
+                              - 'null'
+                              description: Country of the company, if known
+                              example: United States
+                            company_employees:
+                              type:
+                              - string
+                              - 'null'
+                              description: Employee count band, if known
+                              example: 1001-5000
+                            intent_score:
+                              type:
+                              - integer
+                              - 'null'
+                              description: G2 intent score at the time of unlock (0-100)
+                              example: 87
+                            credit_cost:
+                              type:
+                              - integer
+                              - 'null'
+                              description: Activate credits spent to unlock this company
+                            viewed_at:
+                              type:
+                              - string
+                              - 'null'
+                              description: When the seller first viewed the unlocked company
+                              format: date-time
+                            unlocked_at:
+                              type: string
+                              description: When the company was unlocked
+                              format: date-time
+                            contacts:
+                              type:
+                              - array
+                              - 'null'
+                              items:
+                                type: object
+                              description: Resolved contacts at the company. Excludes email and phone in v1. Null on index; populated array of contact objects on show.
+                        relationships:
+                          type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+  /api/v2/products/{product_id}/g2_activate/unlocked_companies/{id}:
+    get:
+      summary: Shows a single unlocked company with resolved contacts
+      operationId: getG2ActivateUnlockedCompany
+      tags:
+      - G2 Activate
+      description: '**Requires `g2_activate.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - g2_activate.read
+      parameters:
+      - name: product_id
+        in: path
+        description: Product UUID or Slug
+        required: true
+        schema:
+          type: string
+      - name: id
+        in: path
+        description: Ahoy g2_company_id (UUID)
+        required: true
+        schema:
+          type: string
+      - name: fields[unlocked_companies]
+        in: query
+        explode: false
+        description: Comma separated list of fields for unlocked_companies to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - product_id
+            - company_name
+            - company_country
+            - company_employees
+            - intent_score
+            - credit_cost
+            - viewed_at
+            - unlocked_at
+            - contacts
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: Company exists but has no unlock for this product
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Missing g2_activate.read scope
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '403'
+                  title: You do not have access to that resource
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Unlocked company with resolved contacts
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: aaaaaaaa-bbbb-4ccc-8ddd-000000000001
+                  type: unlocked_companies
+                  attributes:
+                    product_id: 23cf363c-eabb-455c-8f4f-000000000001
+                    company_name: Acme Corp
+                    company_country: United States
+                    company_employees: 1001-5000
+                    intent_score: 92
+                    credit_cost: 5
+                    viewed_at: null
+                    unlocked_at: '2021-12-29T00:00:00-06:00'
+                    contacts:
+                    - id: '13'
+                      full_name: Jane Doe
+                      job_title: Head of Growth
+                      departments:
+                      - Marketing
+                      job_functions:
+                      - Growth
+                      management_level: director
+                      country: United States
+                      state: California
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          product_id:
+                            type: string
+                            description: UUID of the product this company was unlocked for
+                            format: uuid
+                          company_name:
+                            type: string
+                            description: Display name of the unlocked company
+                            example: Salesforce
+                          company_country:
+                            type:
+                            - string
+                            - 'null'
+                            description: Country of the company, if known
+                            example: United States
+                          company_employees:
+                            type:
+                            - string
+                            - 'null'
+                            description: Employee count band, if known
+                            example: 1001-5000
+                          intent_score:
+                            type:
+                            - integer
+                            - 'null'
+                            description: G2 intent score at the time of unlock (0-100)
+                            example: 87
+                          credit_cost:
+                            type:
+                            - integer
+                            - 'null'
+                            description: Activate credits spent to unlock this company
+                          viewed_at:
+                            type:
+                            - string
+                            - 'null'
+                            description: When the seller first viewed the unlocked company
+                            format: date-time
+                          unlocked_at:
+                            type: string
+                            description: When the company was unlocked
+                            format: date-time
+                          contacts:
+                            type:
+                            - array
+                            - 'null'
+                            items:
+                              type: object
+                            description: Resolved contacts at the company. Excludes email and phone in v1. Null on index; populated array of contact objects on show.
+                      relationships:
+                        type: object
+                  included:
+                    $ref: '#/components/schemas/included'
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

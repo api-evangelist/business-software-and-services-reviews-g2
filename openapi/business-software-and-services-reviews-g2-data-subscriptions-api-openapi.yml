@@ -1,0 +1,348 @@
+openapi: 3.2.0
+info:
+  title: G2 Data Subscriptions API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Data Subscriptions
+paths:
+  /api/v2/partners/{partner_id}/data_subscriptions:
+    get:
+      summary: Lists data subscriptions for given partner and account
+      operationId: getPartnerDataSubscriptions
+      tags:
+      - Data Subscriptions
+      description: '**Requires `data_subscriptions.read` scope.**
+
+
+        Data Subscriptions require a Partner ID and appropriate scope.
+
+        Contact G2 for a unique Partner ID.
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - data_subscriptions.read
+        - data_subscriptions.read_write
+        - openid
+        - profile
+        - partner:partner-id.read
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: partner_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fields[data_subscriptions]
+        in: query
+        explode: false
+        description: Comma separated list of fields for data_subscriptions to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - topic
+            - target
+            - schedule
+            - status
+            - payload
+      responses:
+        '200':
+          description: With all fields included
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: 8dffcb37-9ff7-4e15-8440-000000000003
+                  type: data_subscriptions
+                  attributes:
+                    topic: buyer-intent
+                    target:
+                      type: s3
+                      params:
+                        bucket: data-subscription-test-bucket
+                        region: us-east-1
+                        object_key: test-object-key
+                    schedule: 0 10 * * 6
+                    status: active
+                    payload:
+                      format: default
+                      product_ids:
+                      - 8dffcb37-9ff7-4e15-8440-000000000002
+                links:
+                  self: http://data.example.com/api/v2/partners/test-partner/data_subscriptions?fields%5Bdata_subscriptions%5D=topic,target,schedule,status,payload
+                  next: null
+                  prev: null
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            topic:
+                              type: string
+                            target:
+                              type: object
+                            schedule:
+                              type: string
+                            status:
+                              type: string
+                            payload:
+                              type:
+                              - object
+                              - 'null'
+                              properties:
+                                format:
+                                  type: string
+                                  enum:
+                                  - default
+                                  - legacy
+                                  - competitive
+                                  - analytical
+                                product_ids:
+                                  type: array
+                                  items:
+                                    type: string
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+    post:
+      summary: Creates a data subscription
+      operationId: createPartnerDataSubscription
+      tags:
+      - Data Subscriptions
+      description: '**Requires `data_subscriptions.write` scope.**
+
+
+        Data Subscriptions require a Partner ID and appropriate scope.
+
+        Contact G2 for a unique Partner ID.
+
+        '
+      security:
+      - G2OAuth:
+        - data_subscriptions.write
+        - data_subscriptions.read_write
+        - openid
+        - profile
+        - partner:partner-id.read
+      parameters:
+      - name: partner_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '201':
+          description: created
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: aaaaaaaa-bbbb-4ccc-8ddd-000000000033
+                  type: data_subscriptions
+        '400':
+          description: bad request
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Missing required parameter: "topic"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: forbidden
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '403'
+                  title: You do not have access to that resource
+              schema:
+                $ref: '#/components/schemas/Errors'
+      requestBody:
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      example: data_subscription
+                    attributes:
+                      type: object
+                      properties:
+                        topic:
+                          type: string
+                        target:
+                          type: object
+                        schedule:
+                          type: string
+                      required:
+                      - topic
+                      - target
+                      - schedule
+                  required:
+                  - type
+                  - attributes
+              required:
+              - data
+  /api/v2/partners/{partner_id}/data_subscriptions/{data_subscription_id}:
+    delete:
+      summary: Deletes the data subscription for a given partner and account
+      operationId: deletePartnerDataSubscription
+      tags:
+      - Data Subscriptions
+      description: "**Requires `data_subscriptions.write` scope.**\n\nData Subscriptions require a Partner ID and appropriate scope.\n Contact G2 for a unique Partner ID.\n"
+      security:
+      - G2OAuth:
+        - data_subscriptions.read
+        - data_subscriptions.read_write
+        - openid
+        - profile
+        - partner:partner-id.read
+      parameters:
+      - name: partner_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: data_subscription_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+components:
+  schemas:
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

@@ -1,0 +1,285 @@
+openapi: 3.2.0
+info:
+  title: G2 Reports API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Reports
+paths:
+  /api/v2/reports/grid/{product_id}:
+    get:
+      summary: Get grid reports for a product
+      operationId: getGridReports
+      tags:
+      - Reports
+      description: '**Requires `reports.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken:
+        - reports.read
+      parameters:
+      - name: product_id
+        in: path
+        description: Product UUID or slug
+        required: true
+        schema:
+          type: string
+      - name: filter[category_id]
+        description: Filter by category UUID or slug
+        in: query
+        schema:
+          type: string
+      - name: filter[quarter]
+        description: Report quarter in YYYY-QN format (e.g., 2025-Q4). Defaults to most recent published quarter.
+        example: 2025-Q4
+        in: query
+        schema:
+          type: string
+      - name: fields[grid_reports]
+        in: query
+        explode: false
+        description: Comma separated list of fields for grid_reports to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - id
+            - name
+            - slug
+            - category_name
+            - category_id
+            - quarter
+            - segment
+            - grid_position
+            - satisfaction_score
+            - market_presence_score
+            - badge_url
+      responses:
+        '200':
+          description: Successful responses
+          content:
+            application/vnd.api+json:
+              examples:
+                Grid report data for product:
+                  value:
+                    data:
+                    - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000005
+                      type: grid_reports
+                      attributes:
+                        name: test product 265
+                        slug: test-product-265
+                        category_name: Test Category
+                        category_id: aaaaaaaa-bbbb-4ccc-8ddd-000000000001
+                        quarter: Q4 2024
+                        segment: null
+                        grid_position: Leader
+                        satisfaction_score: 85.5
+                        market_presence_score: 72.3
+                        badge_url: null
+                    meta:
+                      total: 1
+                      quarter: Q4 2024
+              schema:
+                type: object
+                required:
+                - data
+                - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Product UUID
+                              example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                            name:
+                              type: string
+                              description: Product name
+                              example: Acme Software
+                            slug:
+                              type: string
+                              description: Product slug
+                              example: acme-software
+                            category_name:
+                              type:
+                              - string
+                              - 'null'
+                              description: Category name
+                            category_id:
+                              type:
+                              - string
+                              - 'null'
+                              description: Category UUID
+                              example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                            quarter:
+                              type:
+                              - string
+                              - 'null'
+                              description: Report quarter in QN YYYY format
+                              example: Q1 2026
+                            segment:
+                              type:
+                              - string
+                              - 'null'
+                              description: Report segment
+                              example: Small Business
+                            grid_position:
+                              type:
+                              - string
+                              - 'null'
+                              description: Product grid position
+                              example: Leader
+                            satisfaction_score:
+                              type:
+                              - number
+                              - 'null'
+                              description: Product satisfaction score out of 100
+                              example: 95.9
+                            market_presence_score:
+                              type:
+                              - number
+                              - 'null'
+                              description: Product market presence score out of 100
+                              example: 86.1
+                            badge_url:
+                              type:
+                              - string
+                              - 'null'
+                              description: Product badge URL
+                        relationships:
+                          type: object
+                  meta:
+                    type: object
+                    required:
+                    - total
+                    - quarter
+                    properties:
+                      total:
+                        type: integer
+                        description: Total number of reports returned
+                      quarter:
+                        type:
+                        - string
+                        - 'null'
+                        description: Report quarter label (e.g., Q4 2025)
+        '400':
+          description: Bad Request
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                          example: '400'
+                        title:
+                          type: string
+                          example: Bad Request
+                        detail:
+                          type: string
+                          example: Invalid parameter format
+        '401':
+          description: Unauthorized
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                          example: '401'
+                        title:
+                          type: string
+                          example: Bad Credentials
+        '404':
+          description: Not Found
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                          example: '404'
+                        title:
+                          type: string
+                          example: Not Found
+        '403':
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                          example: '403'
+                        title:
+                          type: string
+                          example: Forbidden
+                        detail:
+                          type: string
+                          example: Insufficient permissions or missing required scope
+components:
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

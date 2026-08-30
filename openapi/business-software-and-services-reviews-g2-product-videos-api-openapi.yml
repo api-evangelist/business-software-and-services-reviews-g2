@@ -1,0 +1,401 @@
+openapi: 3.2.0
+info:
+  title: G2 Product Videos API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Product Videos
+paths:
+  /api/v2/products/{product_id}/videos:
+    get:
+      summary: Lists videos related to given product
+      operationId: getProductVideos
+      tags:
+      - Product Videos
+      description: '**Requires `products.videos.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: product_id
+        in: path
+        description: Product UUID or Slug
+        required: true
+        schema:
+          type: string
+      - name: filter[created_at_gt]
+        in: query
+        description: Min time for when a record was created. Using rfc3339 format.
+      - name: filter[created_at_lt]
+        in: query
+        description: Max time for when a record was last updated. Using rfc3339 format.
+      - name: filter[updated_at_gt]
+        in: query
+        description: Min time for when a record was last updated. Using rfc3339 format.
+      - name: filter[updated_at_lt]
+        in: query
+        description: Max time for when a record was last updated. Using rfc3339 format.
+      - name: fields[product_videos]
+        in: query
+        explode: false
+        description: Comma separated list of fields for product_videos to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - id
+            - product_id
+            - url
+            - created_at
+            - updated_at
+            - description
+            - thumbnail_url
+            - video_type
+            - video_id
+            - video_provider
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. product,vendor)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - product
+            - vendor
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+              examples:
+                when user does not have access to the product:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: You do not have access to that resource
+                when user has product access but lacks the required license:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                      links:
+                        type:
+                        - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+              example:
+                errors:
+                - status: '403'
+                  title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                  links:
+                    type:
+                    - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+        '404':
+          description: With invalid id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: With all fields included
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: video_id_3
+                  type: product_videos
+                  attributes:
+                    product_id: 0c0cd1a1-77eb-44cc-8ae3-000000000001
+                    url: https://sample-domain.wistia.com/medias/aad8x3z2cxx
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                    description: Video Description
+                    thumbnail_url: https://placehold.it/50x50.png
+                    video_type: product_video
+                    video_id: video_id_3
+                    video_provider: youtube
+                  relationships:
+                    product:
+                      data:
+                        id: 0c0cd1a1-77eb-44cc-8ae3-000000000001
+                        type: products
+                    vendor:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000001
+                        type: vendors
+                - id: video_id_2
+                  type: product_videos
+                  attributes:
+                    product_id: 0c0cd1a1-77eb-44cc-8ae3-000000000001
+                    url: https://sample-domain.wistia.com/medias/aad8x3z2cxx
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                    description: Video Description
+                    thumbnail_url: https://placehold.it/50x50.png
+                    video_type: product_video
+                    video_id: video_id_2
+                    video_provider: youtube
+                  relationships:
+                    product:
+                      data:
+                        id: 0c0cd1a1-77eb-44cc-8ae3-000000000001
+                        type: products
+                    vendor:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000001
+                        type: vendors
+                - id: video_id_1
+                  type: product_videos
+                  attributes:
+                    product_id: 0c0cd1a1-77eb-44cc-8ae3-000000000001
+                    url: https://sample-domain.wistia.com/medias/aad8x3z2cxx
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                    description: Video Description
+                    thumbnail_url: https://placehold.it/50x50.png
+                    video_type: product_video
+                    video_id: video_id_1
+                    video_provider: youtube
+                  relationships:
+                    product:
+                      data:
+                        id: 0c0cd1a1-77eb-44cc-8ae3-000000000001
+                        type: products
+                    vendor:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000001
+                        type: vendors
+                included:
+                - id: 0c0cd1a1-77eb-44cc-8ae3-000000000001
+                  type: products
+                  attributes:
+                    type: Software
+                    detail_description: Description
+                    domain: example.com
+                    g2_url: http://www.lvh.me:63479/products/product-one/reviews
+                    name: Product One
+                    public_detail_url: null
+                    review_count: 0
+                    slug: product-one
+                    write_review_url: http://www.lvh.me:63479/products/product-one/take_survey
+                    image_url: null
+                    pricing_tiers: []
+                    star_rating: 2.5
+                  relationships:
+                    categories:
+                      data:
+                      - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000006
+                        type: product_categories
+                    discussions:
+                      data: []
+                      links:
+                        related: http://data.lvh.me:63479/api/v2/products/0c0cd1a1-77eb-44cc-8ae3-000000000001/discussions
+                    screenshots:
+                      data: []
+                    vendor:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000001
+                        type: vendors
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000001
+                  type: vendors
+                  attributes:
+                    name: Test Vendor
+                    description: null
+                    company_website: https://example.com
+                    slug: test-vendor
+                    public_products_count: 1
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                  relationships:
+                    products:
+                      data:
+                      - id: 0c0cd1a1-77eb-44cc-8ae3-000000000001
+                        type: products
+                links:
+                  self: http://data.example.com/api/v2/products/0c0cd1a1-77eb-44cc-8ae3-000000000001/videos?filter%5Bcreated_at_gt%5D=&filter%5Bcreated_at_lt%5D=&filter%5Bupdated_at_gt%5D=&filter%5Bupdated_at_lt%5D=&fields%5Bproduct_videos%5D=id,product_id,url,created_at,updated_at,description,thumbnail_url,video_type,video_id,video_provider&include=product,vendor
+                  next: null
+                  prev: null
+                meta:
+                  record_count: 3
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          required:
+                          - created_at
+                          - product_id
+                          - url
+                          properties:
+                            id:
+                              type: string
+                            product_id:
+                              type: string
+                            url:
+                              type: string
+                            created_at:
+                              type: string
+                              format: date-time
+                            updated_at:
+                              type: string
+                              format: date-time
+                            description:
+                              type:
+                              - string
+                              - 'null'
+                            thumbnail_url:
+                              type: string
+                            video_type:
+                              type: string
+                            video_id:
+                              type: string
+                            video_provider:
+                              type: string
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

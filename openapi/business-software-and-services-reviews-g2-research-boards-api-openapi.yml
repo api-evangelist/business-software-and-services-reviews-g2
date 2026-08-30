@@ -1,0 +1,969 @@
+openapi: 3.2.0
+info:
+  title: G2 Research Boards API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Research Boards
+paths:
+  /api/v2/users/me/research_boards:
+    get:
+      summary: List research boards for current user
+      operationId: listResearchBoards
+      tags:
+      - Research Boards
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters:
+      - name: fields[research_boards]
+        in: query
+        explode: false
+        description: Comma separated list of fields for research_boards to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - title
+            - origin
+            - budget
+            - industry
+            - employee_count
+            - deadline_at
+            - product_count
+            - created_at
+            - updated_at
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. products)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - products
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Success
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: 7258039b-f18f-4ba4-82b8-000000000002
+                  type: research_boards
+                  attributes:
+                    title: Test Board
+                    origin: api
+                    budget: null
+                    industry: null
+                    employee_count: 0
+                    deadline_at: null
+                    product_count: 0
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                  relationships:
+                    products:
+                      data: []
+                links:
+                  self: http://data.example.com/api/v2/users/me/research_boards?fields%5Bresearch_boards%5D=title,origin,budget,industry,employee_count,deadline_at,product_count,created_at,updated_at&include=products
+                  next: null
+                  prev: null
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                          - research_boards
+                        attributes:
+                          type: object
+                          properties:
+                            title:
+                              type: string
+                            origin:
+                              type: string
+                            budget:
+                              type:
+                              - string
+                              - 'null'
+                            industry:
+                              type:
+                              - string
+                              - 'null'
+                            employee_count:
+                              type: integer
+                            deadline_at:
+                              type:
+                              - string
+                              - 'null'
+                            product_count:
+                              type: integer
+                            created_at:
+                              type: string
+                            updated_at:
+                              type: string
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+    post:
+      summary: Create a research board
+      operationId: createResearchBoard
+      tags:
+      - Research Boards
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters: []
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '201':
+          description: Research board created
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: aaaaaaaa-bbbb-4ccc-8ddd-000000000025
+                  type: research_boards
+                  attributes:
+                    title: New Board
+                    origin: api
+                    budget: null
+                    industry: null
+                    employee_count: 0
+                    deadline_at: null
+                    product_count: 0
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                  relationships:
+                    products:
+                      data: []
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                        enum:
+                        - research_boards
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          origin:
+                            type: string
+                          budget:
+                            type:
+                            - string
+                            - 'null'
+                          industry:
+                            type:
+                            - string
+                            - 'null'
+                          employee_count:
+                            type: integer
+                          deadline_at:
+                            type:
+                            - string
+                            - 'null'
+                          product_count:
+                            type: integer
+                          created_at:
+                            type: string
+                          updated_at:
+                            type: string
+                  included:
+                    $ref: '#/components/schemas/included'
+      requestBody:
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  required:
+                  - type
+                  - attributes
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                      - research_boards
+                    attributes:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+  /api/v2/users/me/research_boards/{uuid}:
+    parameters:
+    - name: uuid
+      in: path
+      description: Research board UUID
+      required: true
+      schema:
+        type: string
+    get:
+      summary: Get a research board
+      operationId: getResearchBoard
+      tags:
+      - Research Boards
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: Not Found
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Success
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: 7258039b-f18f-4ba4-82b8-000000000002
+                  type: research_boards
+                  attributes:
+                    title: Test Board
+                    product_count: 0
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                  relationships:
+                    products:
+                      data: []
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                        enum:
+                        - research_boards
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          origin:
+                            type: string
+                          budget:
+                            type:
+                            - string
+                            - 'null'
+                          industry:
+                            type:
+                            - string
+                            - 'null'
+                          employee_count:
+                            type: integer
+                          deadline_at:
+                            type:
+                            - string
+                            - 'null'
+                          product_count:
+                            type: integer
+                          created_at:
+                            type: string
+                          updated_at:
+                            type: string
+                  included:
+                    $ref: '#/components/schemas/included'
+    patch:
+      summary: Update a research board
+      operationId: updateResearchBoard
+      tags:
+      - Research Boards
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters: []
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Research board updated
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: 7258039b-f18f-4ba4-82b8-000000000002
+                  type: research_boards
+                  attributes:
+                    title: Updated Board
+                    origin: api
+                    budget: null
+                    industry: null
+                    employee_count: 0
+                    deadline_at: null
+                    product_count: 0
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                  relationships:
+                    products:
+                      data: []
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                        enum:
+                        - research_boards
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          origin:
+                            type: string
+                          budget:
+                            type:
+                            - string
+                            - 'null'
+                          industry:
+                            type:
+                            - string
+                            - 'null'
+                          employee_count:
+                            type: integer
+                          deadline_at:
+                            type:
+                            - string
+                            - 'null'
+                          product_count:
+                            type: integer
+                          created_at:
+                            type: string
+                          updated_at:
+                            type: string
+                  included:
+                    $ref: '#/components/schemas/included'
+      requestBody:
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  required:
+                  - type
+                  - attributes
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                      - research_boards
+                    attributes:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+    delete:
+      summary: Delete a research board
+      operationId: deleteResearchBoard
+      tags:
+      - Research Boards
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      responses:
+        '204':
+          description: ''
+  /api/v2/users/me/research_boards/{research_board_uuid}/products:
+    parameters:
+    - name: research_board_uuid
+      in: path
+      description: Research board UUID
+      required: true
+      schema:
+        type: string
+    get:
+      summary: List products on a research board
+      operationId: listResearchBoardProducts
+      tags:
+      - Research Boards
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters:
+      - name: fields[products]
+        in: query
+        explode: false
+        description: Comma separated list of fields for products to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - name
+            - slug
+            - image_url
+            - star_rating
+            - review_count
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Success
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: 7258039b-f18f-4ba4-82b8-000000000003
+                  type: products
+                  attributes:
+                    name: test product 357
+                    slug: test-product-357
+                    image_url: null
+                    star_rating: '5.0'
+                    review_count: 0
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                          - products
+                        attributes:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            slug:
+                              type: string
+                            image_url:
+                              type:
+                              - string
+                              - 'null'
+                            star_rating:
+                              type:
+                              - string
+                              - 'null'
+                            review_count:
+                              type: integer
+    post:
+      summary: Add a product to a research board
+      operationId: addProductToResearchBoard
+      tags:
+      - Research Boards
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters: []
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '201':
+          description: Product added
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: 7258039b-f18f-4ba4-82b8-000000000003
+                  type: products
+                  attributes:
+                    name: test product 359
+                    slug: test-product-359
+                    image_url: null
+                    star_rating: '5.0'
+                    review_count: 0
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                        enum:
+                        - products
+                      attributes:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          slug:
+                            type: string
+                          image_url:
+                            type:
+                            - string
+                            - 'null'
+                          star_rating:
+                            type:
+                            - string
+                            - 'null'
+                          review_count:
+                            type: integer
+                  included:
+                    $ref: '#/components/schemas/included'
+      requestBody:
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  required:
+                  - id
+                  - type
+                  properties:
+                    id:
+                      type: string
+                      description: Product UUID or slug
+                    type:
+                      type: string
+                      enum:
+                      - products
+  /api/v2/users/me/research_boards/{research_board_uuid}/products/batch_create:
+    parameters:
+    - name: research_board_uuid
+      in: path
+      description: Research board UUID
+      required: true
+      schema:
+        type: string
+    post:
+      summary: Add multiple products to a research board
+      operationId: batchAddProductsToResearchBoard
+      tags:
+      - Research Boards
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters: []
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Products added (may include per-product errors)
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: 7258039b-f18f-4ba4-82b8-000000000003
+                  type: products
+                  attributes:
+                    id: 7258039b-f18f-4ba4-82b8-000000000003
+                    name: test product 361
+                    slug: test-product-361
+                    image_url: null
+                    star_rating: '5.0'
+                    review_count: 0
+                errors: []
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                          - products
+                        attributes:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            slug:
+                              type: string
+                            image_url:
+                              type:
+                              - string
+                              - 'null'
+                            star_rating:
+                              type:
+                              - string
+                              - 'null'
+                            review_count:
+                              type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                        title:
+                          type: string
+                        meta:
+                          type: object
+                          properties:
+                            product_id:
+                              type: string
+      requestBody:
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - id
+                    - type
+                    properties:
+                      id:
+                        type: string
+                        description: Product UUID or slug
+                      type:
+                        type: string
+                        enum:
+                        - products
+                  maxItems: 20
+  /api/v2/users/me/research_boards/{research_board_uuid}/products/batch_destroy:
+    parameters:
+    - name: research_board_uuid
+      in: path
+      description: Research board UUID
+      required: true
+      schema:
+        type: string
+    post:
+      summary: Remove multiple products from a research board
+      operationId: batchRemoveProductsFromResearchBoard
+      tags:
+      - Research Boards
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters: []
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Products removed (may include per-product errors)
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  removed:
+                  - 7258039b-f18f-4ba4-82b8-000000000003
+                errors: []
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      removed:
+                        type: array
+                        items:
+                          type: string
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                        title:
+                          type: string
+                        meta:
+                          type: object
+                          properties:
+                            product_id:
+                              type: string
+      requestBody:
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - id
+                    - type
+                    properties:
+                      id:
+                        type: string
+                        description: Product UUID or slug
+                      type:
+                        type: string
+                        enum:
+                        - products
+                  maxItems: 20
+  /api/v2/users/me/research_boards/{research_board_uuid}/products/{id}:
+    parameters:
+    - name: research_board_uuid
+      in: path
+      description: Research board UUID
+      required: true
+      schema:
+        type: string
+    - name: id
+      in: path
+      description: Product UUID or slug
+      required: true
+      schema:
+        type: string
+    delete:
+      summary: Remove a product from a research board
+      operationId: removeProductFromResearchBoard
+      tags:
+      - Research Boards
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      responses:
+        '204':
+          description: Product removed
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

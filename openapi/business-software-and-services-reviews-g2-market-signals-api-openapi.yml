@@ -1,0 +1,156 @@
+openapi: 3.2.0
+info:
+  title: G2 Market Signals API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Market Signals
+paths:
+  /api/v2/market_signals:
+    get:
+      summary: Retrieve buyer intent signals for a date range
+      operationId: getMarketSignalsIndex
+      tags:
+      - Market Signals
+      description: '**Requires `market_signals.read` scope.**
+
+
+        Retrieve buyer intent signals (interactions) for specific categories.
+
+
+        Returns one result per buyer intent interaction within the specified date range.
+
+        Each interaction includes the category UUID, company name, and domain.
+
+
+        If no dates are provided, defaults to today for both start and end date.
+
+
+        Results are paginated using cursor-based pagination (default 25, max 250 per page).
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters:
+      - name: category_ids[]
+        in: query
+        required: true
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+        description: List of category UUIDs or slugs
+      - name: start_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Start date of range to check for signals (YYYY-MM-DD). Defaults to today.
+      - name: end_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: End date of range to check for signals (YYYY-MM-DD). Defaults to today.
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Signals retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                          - market_signals
+                        attributes:
+                          type: object
+                          properties:
+                            category_uuid:
+                              type: string
+                            company_name:
+                              type: string
+                            company_domain:
+                              type: string
+                            start_date:
+                              type: string
+                              format: date
+                            end_date:
+                              type: string
+                              format: date
+                          required:
+                          - category_uuid
+                          - company_name
+                          - company_domain
+                          - start_date
+                          - end_date
+                      required:
+                      - type
+                      - attributes
+                required:
+                - data
+        '400':
+          description: Invalid parameters
+        '404':
+          description: Category not found
+components:
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

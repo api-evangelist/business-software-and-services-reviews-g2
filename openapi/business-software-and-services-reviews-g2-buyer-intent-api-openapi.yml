@@ -1,0 +1,983 @@
+openapi: 3.2.0
+info:
+  title: G2 Buyer Intent API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Buyer Intent
+paths:
+  /api/sandbox/products/{subject_product_id}/buyer_intent:
+    get:
+      summary: Browse sandbox buyer intent interactions for a product
+      operationId: getSandboxBuyerIntentInteractions
+      tags:
+      - Buyer Intent
+      description: '**No scope is required to access this sandbox endpoint**
+
+
+        **⚠️ Sandbox API**: This endpoint is a sandbox endpoint and is data limited. Only data between 6 months to 1 year ago will be available.
+
+
+        Query buyer intent data using an analytical query interface.
+
+
+        ## Query Language
+
+
+        This endpoint uses an OLAP-style query language that supports:
+
+        - **Dimensions**: Group and categorize data (e.g., company_name, company_domain, day)
+
+        - **Measures**: Aggregate numerical values (e.g., total_activity, visitor_count)
+
+        - **Filters**: Apply conditions to limit results
+
+
+        ### Filter Operators
+
+        Filters use the format `dimension_filters[name_suffix]` where `name`
+
+        is the dimension name and `suffix` indicates the operation:
+
+
+        - `_eq`: Equals (exact match)
+
+        - `_not_eq`: Not equals
+
+        - `_cont`: Contains (substring match)
+
+        - `_not_cont`: Does not contain
+
+        - `_gt`: Greater than
+
+        - `_gteq`: Greater than or equal
+
+        - `_lt`: Less than
+
+        - `_lteq`: Less than or equal
+
+        - `_present`: Field has a value
+
+        - `_empty`: Field is empty
+
+
+        ### Time Series vs Aggregated Data
+
+        - **Aggregated**: Request dimensions without `day` for company-level summaries
+
+        - **Time Series**: Include `day` dimension for daily breakdowns over time
+
+
+        ### Sorting Results
+
+        Use the `sort` parameter to order results by any dimension or measure:
+
+        - **Ascending**: `sort=company_name` or `sort=total_activity`
+
+        - **Descending**: `sort=-company_intent_score` (prefix with `-`)
+
+        - **Default**: Results are sorted by `-company_intent_score` (highest intent first)
+
+
+        Available sort fields include all dimensions and measures listed above.
+
+
+        ### Examples
+
+        - Company summary: `dimensions=company_name,company_domain&measures=total_activity`
+
+        - Time series: `dimensions=company_name,day&measures=company_intent_score`
+
+        - Filtered: `dimension_filters[company_name_cont]=Acme&dimensions=company_name`
+
+        - Sorted by activity: `dimensions=company_name&measures=total_activity&sort=-total_activity`
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters:
+      - name: subject_product_id
+        in: path
+        description: Identifier for the subject product
+        required: true
+        schema:
+          type: string
+      - name: dimensions
+        in: query
+        explode: false
+        description: Comma separated list of dimensions
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - signal_type
+            - time
+            - day
+            - week
+            - month
+            - company_id
+            - company_name
+            - company_domain
+            - company_country
+            - company_state
+            - company_city
+            - company_employees
+            - company_industry
+            - visitor_id
+            - visitor_country
+            - visitor_state
+            - visitor_city
+            - company_intent_score
+            - product_id
+            - product_slug
+            - product_name
+            - category_id
+            - category_slug
+            - category_name
+            - left_product_id
+            - left_product_slug
+            - left_product_name
+            - right_product_id
+            - right_product_slug
+            - right_product_name
+            - vendor_id
+            - vendor_slug
+            - vendor_name
+            - provider
+      - name: measures
+        in: query
+        explode: false
+        description: Comma separated list of measures
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - total_activity
+            - visitor_count
+            - company_count
+            - last_seen_at
+      - name: sort
+        in: query
+        description: Sort field with optional direction prefix. Use "-" for descending (e.g., "-day")
+        schema:
+          type: string
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: dimension_filters
+        in: query
+        style: deepObject
+        explode: true
+        description: Filters represented as query object (e.g., dimension_filters[company_name_cont]=Acme)
+        schema:
+          type: object
+          additionalProperties:
+            oneOf:
+            - type: string
+            - type: number
+            - type: string
+              format: date-time
+          example:
+            company_name_cont: Acme
+            company_intent_score_gteq: 75
+            day_gteq: '2024-01-01'
+      responses:
+        '200':
+          description: Successful responses
+          content:
+            application/vnd.api+json:
+              examples:
+                Company-level intent score:
+                  value:
+                    data:
+                    - id: 602674427a5e0384ac2b5a911062a284
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 150
+                        company_name: Enterprise Corp
+                        company_domain: enterprise.com
+                        company_state: New York
+                        company_intent_score: 85.5
+                        subject_product_id: f6d9f6d6-3ec1-4380-8525-000000000002
+                        subject_product_slug: test-product-6
+                    links:
+                      self: http://data.example.com/api/sandbox/products/f6d9f6d6-3ec1-4380-8525-000000000002/buyer_intent?dimensions=company_name,company_domain,company_state,company_intent_score&measures=total_activity&sort=-company_intent_score&dimension_filters%5Bcompany_intent_score_gteq%5D=75
+                      next: null
+                      prev: null
+                Company-level intent score by day:
+                  value:
+                    data:
+                    - id: a6b2c88e1321dbb7b45d8575d0fea75b
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 25
+                        day: '2024-01-15'
+                        company_intent_score: 75.0
+                        subject_product_id: f6d9f6d6-3ec1-4380-8525-000000000002
+                        subject_product_slug: test-product-7
+                    - id: 610adfa9282f00fd355147a410aaa154
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 35
+                        day: '2024-01-16'
+                        company_intent_score: 82.5
+                        subject_product_id: f6d9f6d6-3ec1-4380-8525-000000000002
+                        subject_product_slug: test-product-7
+                    links:
+                      self: http://data.example.com/api/sandbox/products/f6d9f6d6-3ec1-4380-8525-000000000002/buyer_intent?dimensions=company_intent_score,day&measures=total_activity&sort=-company_intent_score&dimension_filters%5Bcompany_id_eq%5D=uuid-456&dimension_filters%5Bday_gteq%5D=2024-01-01
+                      next: null
+                      prev: null
+                Company-level activity by signal type:
+                  value:
+                    data:
+                    - id: 5bd5e51817ee7d50eded19d61a0e5d10
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 10
+                        signal_type: profile
+                        company_name: Enterprise Corp
+                        company_domain: enterprise.com
+                        company_state: New York
+                        subject_product_id: f6d9f6d6-3ec1-4380-8525-000000000002
+                        subject_product_slug: test-product-8
+                    - id: 6f864c4b6221d1241cab0bc3295c8fbb
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 5
+                        signal_type: pricing
+                        company_name: Enterprise Corp
+                        company_domain: enterprise.com
+                        company_state: New York
+                        subject_product_id: f6d9f6d6-3ec1-4380-8525-000000000002
+                        subject_product_slug: test-product-8
+                    links:
+                      self: http://data.example.com/api/sandbox/products/f6d9f6d6-3ec1-4380-8525-000000000002/buyer_intent?dimensions=company_name,company_domain,company_state,signal_type&measures=total_activity&sort=-company_intent_score&
+                      next: null
+                      prev: null
+                Visitor-level daily behavior:
+                  value:
+                    data:
+                    - id: 1e4bd6a7464c9637a09a7836daa6a6a3
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 5
+                        signal_type: pricing
+                        day: '2024-01-15'
+                        company_name: Tech Solutions Inc
+                        company_domain: techsolutions.com
+                        visitor_id: visitor-123
+                        visitor_country: United States
+                        visitor_state: null
+                        subject_product_id: f6d9f6d6-3ec1-4380-8525-000000000002
+                        subject_product_slug: test-product-9
+                    links:
+                      self: http://data.example.com/api/sandbox/products/f6d9f6d6-3ec1-4380-8525-000000000002/buyer_intent?dimensions=visitor_id,visitor_country,visitor_state,company_name,company_domain,signal_type,day&measures=total_activity&sort=-company_intent_score&dimension_filters%5Bday_gteq%5D=2024-01-01
+                      next: null
+                      prev: null
+                Summary of data volume:
+                  value:
+                    data:
+                    - id: 53617a1aa24939effc7778828ba770d2
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 1250
+                        visitor_count: 450
+                        company_count: 150
+                        subject_product_id: f6d9f6d6-3ec1-4380-8525-000000000002
+                        subject_product_slug: test-product-10
+                    links:
+                      self: http://data.example.com/api/sandbox/products/f6d9f6d6-3ec1-4380-8525-000000000002/buyer_intent?dimensions=&measures=company_count,visitor_count,total_activity&sort=-company_intent_score&
+                      next: null
+                      prev: null
+                Data volume by topic (Product and Category):
+                  value:
+                    data:
+                    - id: f03aa0a9a87e5c684a685b314be1c068
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 30
+                        visitor_count: 20
+                        company_count: 10
+                        product_slug: acme-product
+                        category_slug: acme-category
+                        subject_product_id: f6d9f6d6-3ec1-4380-8525-000000000002
+                        subject_product_slug: test-product-11
+                    links:
+                      self: http://data.example.com/api/sandbox/products/f6d9f6d6-3ec1-4380-8525-000000000002/buyer_intent?dimensions=product_slug,category_slug&measures=company_count,visitor_count,total_activity&sort=-company_intent_score&dimension_filters%5Bcompany_intent_score_gteq%5D=50
+                      next: null
+                      prev: null
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            company_id:
+                              type: string
+                              description: Unique company identifier
+                            company_name:
+                              type: string
+                              description: Company name
+                            company_domain:
+                              type: string
+                              description: Company website domain
+                            company_state:
+                              type: string
+                              description: Company location state
+                            visitor_id:
+                              type: string
+                              description: Unique visitor identifier
+                            company_intent_score:
+                              type: number
+                              description: Intent score (0-100)
+                            total_activity:
+                              type: integer
+                              description: Total page views and interactions
+                            day:
+                              type: string
+                              format: date
+                              description: Date for time-series data
+                            product_id:
+                              type:
+                              - string
+                              - 'null'
+                              description: Product UUID
+                            category_id:
+                              type:
+                              - string
+                              - 'null'
+                              description: Category UUID
+                            subject_product_id:
+                              type: string
+                              description: Subject product UUID
+                            subject_product_slug:
+                              type: string
+                              description: Subject product slug
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+  /api/v2/buyer_intent:
+    get:
+      summary: Browse buyer intent interactions (product-agnostic)
+      operationId: getGlobalBuyerIntentInteractions
+      tags:
+      - Buyer Intent
+      description: '**Requires `buyer_intent.read` scope.**
+
+
+        Query buyer intent data across one or more products in a single request.
+
+        Pass product_id to specify which products, or omit to use your assigned products.
+
+        Supports multi-product queries — the data is not scoped to a single subject product.
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters:
+      - name: dimensions
+        in: query
+        explode: false
+        description: Comma separated list of dimensions
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - signal_type
+            - time
+            - day
+            - week
+            - month
+            - company_id
+            - company_name
+            - company_domain
+            - company_country
+            - company_state
+            - company_city
+            - company_employees
+            - company_industry
+            - visitor_id
+            - visitor_country
+            - visitor_state
+            - visitor_city
+            - product_id
+            - product_slug
+            - product_name
+            - category_id
+            - category_slug
+            - category_name
+            - left_product_id
+            - left_product_slug
+            - left_product_name
+            - right_product_id
+            - right_product_slug
+            - right_product_name
+            - vendor_id
+            - vendor_slug
+            - vendor_name
+            - provider
+      - name: measures
+        in: query
+        explode: false
+        description: Comma separated list of measures
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - total_activity
+            - visitor_count
+            - company_count
+            - last_seen_at
+      - name: subject_product_ids
+        in: query
+        description: One or more product IDs, UUIDs, or URL slugs (comma-separated) that scope the permissions of this query. Defaults to your assigned products.
+        schema:
+          type: string
+      - name: sort
+        in: query
+        description: Sort field with optional direction prefix. Use "-" for descending (e.g., "-day")
+        schema:
+          type: string
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: dimension_filters
+        in: query
+        style: deepObject
+        explode: true
+        description: Filters represented as query object (e.g., dimension_filters[company_name_cont]=Acme)
+        schema:
+          type: object
+          additionalProperties:
+            oneOf:
+            - type: string
+            - type: number
+            - type: string
+              format: date-time
+          example:
+            company_name_cont: Acme
+            provider_in: g2
+            audience_product_id_in: <product-uuid-or-slug>
+      responses:
+        '200':
+          description: Successful responses
+          content:
+            application/vnd.api+json:
+              examples:
+                Company-level activity:
+                  value:
+                    data:
+                    - id: 4e461029a40e1748cb562a87a581125d
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 150
+                        company_name: Enterprise Corp
+                        company_domain: enterprise.com
+                    links:
+                      self: http://data.example.com/api/v2/buyer_intent?dimensions=company_name,company_domain&measures=total_activity&subject_product_ids=4d4226d5-4959-4648-8fd2-000000000001&sort=&
+                      next: null
+                      prev: null
+                With provider dimension:
+                  value:
+                    data:
+                    - id: c72be8462054890d1a74760c5919cfe2
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 80
+                        company_name: Enterprise Corp
+                        provider: g2
+                    - id: 57a93f21a6b22c62794813e31c9aabf5
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 70
+                        company_name: Enterprise Corp
+                        provider: capterra
+                    links:
+                      self: http://data.example.com/api/v2/buyer_intent?dimensions=company_name,provider&measures=total_activity&subject_product_ids=4d4226d5-4959-4648-8fd2-000000000001&sort=&
+                      next: null
+                      prev: null
+                Summary of data volume:
+                  value:
+                    data:
+                    - id: 075541525d161a64bcfeaf1315997704
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 1250
+                        visitor_count: 450
+                        company_count: 150
+                    links:
+                      self: http://data.example.com/api/v2/buyer_intent?dimensions=&measures=company_count,visitor_count,total_activity&subject_product_ids=4d4226d5-4959-4648-8fd2-000000000001&sort=&
+                      next: null
+                      prev: null
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            company_id:
+                              type: string
+                              description: Unique company identifier
+                            company_name:
+                              type: string
+                              description: Company name
+                            company_domain:
+                              type: string
+                              description: Company website domain
+                            total_activity:
+                              type: integer
+                              description: Total page views and interactions
+                            provider:
+                              type: string
+                              description: Data provider (g2, capterra)
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+  /api/v2/products/{subject_product_id}/buyer_intent:
+    get:
+      summary: Browse buyer intent interactions for a product
+      operationId: getBuyerIntentInteractions
+      tags:
+      - Buyer Intent
+      description: "**Requires `buyer_intent.read` scope.**\n\nQuery buyer intent data using an analytical query interface.\n\n## Query Language\n\nThis endpoint uses an OLAP-style query language that supports:\n- **Dimensions**: Group and categorize data (e.g., company_name, company_domain, day)\n- **Measures**: Aggregate numerical values (e.g., total_activity, visitor_count)\n- **Filters**: Apply conditions to limit results\n\n### Filter Operators\nFilters use the format `dimension_filters[name_suffix]` where `name`\nis the dimension name and `suffix` indicates the operation:\n\n- `_eq`: Equals (exact match)\n- `_not_eq`: Not equals\n- `_cont`: Contains (substring match)\n- `_not_cont`: Does not contain\n- `_gt`: Greater than\n- `_gteq`: Greater than or equal\n- `_lt`: Less than\n- `_lteq`: Less than or equal\n- `_present`: Field has a value\n- `_empty`: Field is empty\n\n### Time Series vs Aggregated Data\n- **Aggregated**: Request dimensions without `day` for company-level summaries\n- **Time Series**: Include `day` dimension for daily breakdowns over time\n\n### Sorting Results\nUse the `sort` parameter to order results by any dimension or measure:\n- **Ascending**: `sort=company_name` or `sort=total_activity`\n- **Descending**: `sort=-company_intent_score` (prefix with `-`)\n- **Default**: Results are sorted by `-company_intent_score` (highest intent first)\n\nAvailable sort fields include all dimensions and measures listed above.\n\n### Signal Types\nThe `signal_type` dimension identifies the type of buyer activity on G2 (e.g., `profile`, `pricing`, `compare`).\n\n### Competitive Signals\nResults include activity on both your product and competitor products in your categories.\nCompare `left_product_id` to `subject_product_id` to distinguish the two:\n\n- **`left_product_id` = `subject_product_id`**: Direct signal — activity on your product.\n- **`left_product_id` ≠ `subject_product_id`**: Competitive signal — activity on a competitor.\n  The `signal_type` indicates what the buyer did (e.g., viewed the competitor's `profile` or `pricing` page).\n  Use `left_product_name` / `left_product_slug` to identify the competitor.\n\n### Examples\n- Company summary: `dimensions=company_name,company_domain&measures=total_activity`\n- Time series: `dimensions=company_name,day&measures=company_intent_score`\n- Filtered: `dimension_filters[company_name_cont]=Acme&dimensions=company_name`\n- Sorted by activity: `dimensions=company_name&measures=total_activity&sort=-total_activity`\n- Competitive activity: `dimensions=company_name,signal_type,left_product_name,left_product_id&measures=total_activity`\n"
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters:
+      - name: subject_product_id
+        in: path
+        description: Identifier for the subject product
+        required: true
+        schema:
+          type: string
+      - name: dimensions
+        in: query
+        explode: false
+        description: Comma separated list of dimensions
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - signal_type
+            - time
+            - day
+            - week
+            - month
+            - company_id
+            - company_name
+            - company_domain
+            - company_country
+            - company_state
+            - company_city
+            - company_employees
+            - company_industry
+            - visitor_id
+            - visitor_country
+            - visitor_state
+            - visitor_city
+            - company_intent_score
+            - product_id
+            - product_slug
+            - product_name
+            - category_id
+            - category_slug
+            - category_name
+            - left_product_id
+            - left_product_slug
+            - left_product_name
+            - right_product_id
+            - right_product_slug
+            - right_product_name
+            - vendor_id
+            - vendor_slug
+            - vendor_name
+            - provider
+      - name: measures
+        in: query
+        explode: false
+        description: Comma separated list of measures
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - total_activity
+            - visitor_count
+            - company_count
+            - last_seen_at
+      - name: sort
+        in: query
+        description: Sort field with optional direction prefix. Use "-" for descending (e.g., "-day")
+        schema:
+          type: string
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: dimension_filters
+        in: query
+        style: deepObject
+        explode: true
+        description: Filters represented as query object (e.g., dimension_filters[company_name_cont]=Acme)
+        schema:
+          type: object
+          additionalProperties:
+            oneOf:
+            - type: string
+            - type: number
+            - type: string
+              format: date-time
+          example:
+            company_name_cont: Acme
+            company_intent_score_gteq: 75
+            day_gteq: '2024-01-01'
+            audience_product_id_in: <product-uuid-or-slug>
+      responses:
+        '200':
+          description: Successful responses
+          content:
+            application/vnd.api+json:
+              examples:
+                Company-level intent score:
+                  value:
+                    data:
+                    - id: 62e395c5d0733560080b7902d1d136b6
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 150
+                        company_name: Enterprise Corp
+                        company_domain: enterprise.com
+                        company_state: New York
+                        company_intent_score: 85.5
+                        subject_product_id: 6406acf7-d22b-49b0-8e37-000000000001
+                        subject_product_slug: test-product-46
+                    links:
+                      self: http://data.example.com/api/v2/products/6406acf7-d22b-49b0-8e37-000000000001/buyer_intent?dimensions=company_name,company_domain,company_state,company_intent_score&measures=total_activity&sort=-company_intent_score&dimension_filters%5Bcompany_intent_score_gteq%5D=75
+                      next: null
+                      prev: null
+                Company-level intent score by day:
+                  value:
+                    data:
+                    - id: 36df3af9aeb6fd3a93dff39c65fafc2a
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 25
+                        day: '2024-01-15'
+                        company_intent_score: 75.0
+                        subject_product_id: 6406acf7-d22b-49b0-8e37-000000000001
+                        subject_product_slug: test-product-47
+                    - id: ba5315d52a5a0e5f50afc9f169df3acb
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 35
+                        day: '2024-01-16'
+                        company_intent_score: 82.5
+                        subject_product_id: 6406acf7-d22b-49b0-8e37-000000000001
+                        subject_product_slug: test-product-47
+                    links:
+                      self: http://data.example.com/api/v2/products/6406acf7-d22b-49b0-8e37-000000000001/buyer_intent?dimensions=company_intent_score,day&measures=total_activity&sort=-company_intent_score&dimension_filters%5Bcompany_id_eq%5D=uuid-456&dimension_filters%5Bday_gteq%5D=2024-01-01
+                      next: null
+                      prev: null
+                Company-level activity by signal type:
+                  value:
+                    data:
+                    - id: cc3df53a3d279ec18b7628f859b13d4f
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 10
+                        signal_type: profile
+                        company_name: Enterprise Corp
+                        company_domain: enterprise.com
+                        company_state: New York
+                        subject_product_id: 6406acf7-d22b-49b0-8e37-000000000001
+                        subject_product_slug: test-product-48
+                    - id: 21bd63c1db213985095dedc7cf50e5c7
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 5
+                        signal_type: pricing
+                        company_name: Enterprise Corp
+                        company_domain: enterprise.com
+                        company_state: New York
+                        subject_product_id: 6406acf7-d22b-49b0-8e37-000000000001
+                        subject_product_slug: test-product-48
+                    links:
+                      self: http://data.example.com/api/v2/products/6406acf7-d22b-49b0-8e37-000000000001/buyer_intent?dimensions=company_name,company_domain,company_state,signal_type&measures=total_activity&sort=-company_intent_score&
+                      next: null
+                      prev: null
+                Visitor-level daily behavior:
+                  value:
+                    data:
+                    - id: 1af1869515853cb5f35f6e0c4fa8e4cb
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 5
+                        signal_type: pricing
+                        day: '2024-01-15'
+                        company_name: Tech Solutions Inc
+                        company_domain: techsolutions.com
+                        visitor_id: visitor-123
+                        visitor_country: United States
+                        visitor_state: null
+                        subject_product_id: 6406acf7-d22b-49b0-8e37-000000000001
+                        subject_product_slug: test-product-49
+                    links:
+                      self: http://data.example.com/api/v2/products/6406acf7-d22b-49b0-8e37-000000000001/buyer_intent?dimensions=visitor_id,visitor_country,visitor_state,company_name,company_domain,signal_type,day&measures=total_activity&sort=-company_intent_score&dimension_filters%5Bday_gteq%5D=2024-01-01
+                      next: null
+                      prev: null
+                Summary of data volume:
+                  value:
+                    data:
+                    - id: c9dae63ea0fb4cbc55354ec85d5a6abb
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 1250
+                        visitor_count: 450
+                        company_count: 150
+                        subject_product_id: 6406acf7-d22b-49b0-8e37-000000000001
+                        subject_product_slug: test-product-50
+                    links:
+                      self: http://data.example.com/api/v2/products/6406acf7-d22b-49b0-8e37-000000000001/buyer_intent?dimensions=&measures=company_count,visitor_count,total_activity&sort=-company_intent_score&
+                      next: null
+                      prev: null
+                Data volume by topic (Product and Category):
+                  value:
+                    data:
+                    - id: 2cf5a7e39bfc2dcb8587cb7eaf228d5f
+                      type: buyer_intent
+                      attributes:
+                        total_activity: 30
+                        visitor_count: 20
+                        company_count: 10
+                        product_slug: acme-product
+                        category_slug: acme-category
+                        subject_product_id: 6406acf7-d22b-49b0-8e37-000000000001
+                        subject_product_slug: test-product-51
+                    links:
+                      self: http://data.example.com/api/v2/products/6406acf7-d22b-49b0-8e37-000000000001/buyer_intent?dimensions=product_slug,category_slug&measures=company_count,visitor_count,total_activity&sort=-company_intent_score&dimension_filters%5Bcompany_intent_score_gteq%5D=50
+                      next: null
+                      prev: null
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            company_id:
+                              type: string
+                              description: Unique company identifier
+                            company_name:
+                              type: string
+                              description: Company name
+                            company_domain:
+                              type: string
+                              description: Company website domain
+                            company_state:
+                              type: string
+                              description: Company location state
+                            visitor_id:
+                              type: string
+                              description: Unique visitor identifier
+                            company_intent_score:
+                              type: number
+                              description: Intent score (0-100)
+                            total_activity:
+                              type: integer
+                              description: Total page views and interactions
+                            day:
+                              type: string
+                              format: date
+                              description: Date for time-series data
+                            product_id:
+                              type:
+                              - string
+                              - 'null'
+                              description: Product UUID
+                            category_id:
+                              type:
+                              - string
+                              - 'null'
+                              description: Category UUID
+                            subject_product_id:
+                              type: string
+                              description: Subject product UUID
+                            subject_product_slug:
+                              type: string
+                              description: Subject product slug
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+components:
+  schemas:
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

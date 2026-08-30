@@ -1,0 +1,314 @@
+openapi: 3.2.0
+info:
+  title: G2 Medals API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Medals
+paths:
+  /api/v2/products/{product_id}/badges:
+    get:
+      summary: Lists medals (badges) awarded to given product
+      operationId: getProductMedals
+      tags:
+      - Medals
+      description: '**No scope required.**
+
+
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: product_id
+        in: path
+        description: Product UUID or Slug
+        required: true
+        schema:
+          type: string
+      - name: page[number]
+        in: query
+        schema:
+          type: integer
+        description: Page number to return (min 1). Defaults to 1.
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: filter[season]
+        description: 'Report season. Valid values: spring, summer, fall, winter'
+        example: spring
+        in: query
+        schema:
+          type: string
+      - name: filter[year]
+        description: Report year
+        example: '2024'
+        in: query
+        schema:
+          type: string
+      - name: filter[category_id]
+        description: Category UUID to filter medals by category
+        in: query
+        schema:
+          type: string
+      - name: fields[medals]
+        in: query
+        explode: false
+        description: Comma separated list of fields for medals to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - title
+            - description
+            - badge_type
+            - image
+            - alt_text
+            - segment
+            - full_title
+            - geo_name
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. product,categories)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - product
+            - categories
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+              examples:
+                when user does not have access to the product:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: You do not have access to that resource
+                when user has product access but lacks the required license:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                      links:
+                        type:
+                        - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+              example:
+                errors:
+                - status: '403'
+                  title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                  links:
+                    type:
+                    - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+        '404':
+          description: With invalid id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: With all fields included
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: users_love_us
+                  type: medals
+                  attributes:
+                    title: Users Love Us
+                    description: The Users Love Us badge is earned after collecting 20 reviews with an average rating of 4.0 stars
+                    badge_type: static-badge
+                    image:
+                      png: https://example.com/image/fetch/h_1000,f_png/https%3A%2F%2Fwww.g2.test%2Fshared-assets%2Fproduct-badges%2Fusers-love-us.svg
+                      svg: https://www.g2.test/shared-assets/product-badges/users-love-us.svg
+                    alt_text: Users love Product One on G2
+                    segment: ''
+                    full_title: Users love Product One on G2
+                    geo_name: ''
+                  relationships:
+                    product:
+                      data:
+                        id: '997'
+                        type: software
+                    categories:
+                      data: []
+                included:
+                - id: '997'
+                  type: software
+                links:
+                  self: http://data.example.com/api/v2/products/83afb161-765c-4d7b-83c9-000000000001/badges?fields%5Bmedals%5D=title%2Cdescription%2Cbadge_type%2Cimage%2Calt_text%2Csegment%2Cfull_title%2Cgeo_name&filter%5Bcategory_id%5D=&filter%5Bseason%5D=&filter%5Byear%5D=&include=product%2Ccategories&page%5Bnumber%5D=1&page%5Bsize%5D=25
+                  first: http://data.example.com/api/v2/products/83afb161-765c-4d7b-83c9-000000000001/badges?fields%5Bmedals%5D=title%2Cdescription%2Cbadge_type%2Cimage%2Calt_text%2Csegment%2Cfull_title%2Cgeo_name&filter%5Bcategory_id%5D=&filter%5Bseason%5D=&filter%5Byear%5D=&include=product%2Ccategories&page%5Bnumber%5D=1&page%5Bsize%5D=25
+                  prev: null
+                  next: null
+                  last: http://data.example.com/api/v2/products/83afb161-765c-4d7b-83c9-000000000001/badges?fields%5Bmedals%5D=title%2Cdescription%2Cbadge_type%2Cimage%2Calt_text%2Csegment%2Cfull_title%2Cgeo_name&filter%5Bcategory_id%5D=&filter%5Bseason%5D=&filter%5Byear%5D=&include=product%2Ccategories&page%5Bnumber%5D=1&page%5Bsize%5D=25
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            title:
+                              type: string
+                              description: Medal title
+                              example: Leader
+                            description:
+                              type: string
+                              description: Medal description
+                            badge_type:
+                              type: string
+                              description: Badge type (e.g. best-product-badge)
+                            image:
+                              type: object
+                              description: Medal image URLs (png and svg formats)
+                              properties: {}
+                            alt_text:
+                              type: string
+                              description: Image alt text for accessibility
+                            segment:
+                              type: string
+                              description: Market segment
+                              example: Enterprise
+                            full_title:
+                              type: string
+                              description: Full medal title with segment
+                            geo_name:
+                              type:
+                              - string
+                              - 'null'
+                              description: Geographic region name
+                        relationships:
+                          type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

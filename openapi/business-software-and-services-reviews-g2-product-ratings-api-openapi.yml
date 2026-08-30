@@ -1,0 +1,197 @@
+openapi: 3.2.0
+info:
+  title: G2 Product Ratings API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Product Ratings
+paths:
+  /api/v2/product_ratings/{product_id}:
+    get:
+      summary: A product's ratings
+      operationId: getProductRatings
+      tags:
+      - Product Ratings
+      description: '**Requires `products.ratings.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: product_id
+        in: path
+        description: G2 Product UUID or Slug
+        required: true
+      - name: fields[products]
+        in: query
+        explode: false
+        description: Comma separated list of fields for products to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ease_of_use
+            - quality_of_support
+            - meets_requirements
+            - ease_of_setup
+            - ease_of_doing_business_with
+            - direction
+            - ease_of_admin
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+              examples:
+                when user does not have access to the product:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: You do not have access to that resource
+                when user has product access but lacks the required license:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                      links:
+                        type:
+                        - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+              example:
+                errors:
+                - status: '403'
+                  title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                  links:
+                    type:
+                    - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+        '404':
+          description: With invalid id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: With all fields and relationships
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: 100bcbe8-b458-426a-83b6-000000000001
+                  type: products
+                  attributes:
+                    ease_of_use: 0
+                    quality_of_support: 1.7
+                    ease_of_setup: 8.3
+                    meets_requirements: 5.0
+                    ease_of_doing_business_with: 10
+                    direction: 10
+                    ease_of_admin: 10
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          ease_of_use:
+                            type: number
+                          quality_of_support:
+                            type: number
+                          ease_of_setup:
+                            type: number
+                          meets_requirements:
+                            type: number
+                          ease_of_doing_business_with:
+                            type: number
+                          direction:
+                            type: number
+                          ease_of_admin:
+                            type: number
+                  included:
+                    $ref: '#/components/schemas/included'
+components:
+  schemas:
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

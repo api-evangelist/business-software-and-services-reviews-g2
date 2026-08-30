@@ -1,0 +1,1095 @@
+openapi: 3.2.0
+info:
+  title: G2 Products API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Products
+paths:
+  /api/v2/products:
+    get:
+      summary: Browse list of G2 products
+      operationId: getProducts
+      tags:
+      - Products
+      description: '**Requires `products.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: filter[category_id][]
+        description: Filter products by category id
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[product_id][]
+        description: Filter products by one or more product UUIDs
+        example:
+        - a1b2c3d4-e5f6-7890-abcd-ef1234567890
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[review_count_gteq]
+        description: Filter products by minimum review count
+        in: query
+        schema:
+          type: string
+      - name: filter[slug][]
+        description: Filter products by one or more product slugs (exact match)
+        example:
+        - salesforce-sales-cloud
+        - hubspot-crm
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[star_rating][]
+        description: Filter products by star rating
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[vendor_name]
+        description: Filter products by vendor name
+        in: query
+        schema:
+          type: string
+      - name: filter[product_name_cont]
+        description: Filter products by partial name match
+        in: query
+        schema:
+          type: string
+      - name: filter[product_name_eq]
+        description: Filter products by exact name match
+        in: query
+        schema:
+          type: string
+      - name: filter[public_detail_url][]
+        description: Filter products by exact vendor website URL (case-sensitive)
+        example:
+        - https://www.salesforce.com
+        - https://www.hubspot.com
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[public_detail_url_cont][]
+        description: Filter by partial URL/domain match (substring)
+        example:
+        - salesforce.com
+        - hubspot.com
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[query]
+        description: Search for products using full-text search
+        in: query
+        schema:
+          type: string
+      - name: fields[products]
+        in: query
+        explode: false
+        description: Comma separated list of fields for products to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - type
+            - detail_description
+            - domain
+            - g2_url
+            - name
+            - public_detail_url
+            - review_count
+            - slug
+            - write_review_url
+            - image_url
+            - pricing_tiers
+            - star_rating
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. categories,discussions,screenshots,vendor)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - categories
+            - discussions
+            - screenshots
+            - vendor
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Successful responses
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: c18638bd-f0fa-48e3-89a1-000000000005
+                  type: products
+                  attributes:
+                    type: Software
+                    detail_description: Description
+                    domain: example.com
+                    g2_url: http://www.lvh.me:63479/products/product-one/reviews
+                    name: Product One
+                    public_detail_url: https://www.example.com
+                    review_count: 0
+                    slug: product-one
+                    write_review_url: http://www.lvh.me:63479/products/product-one/take_survey
+                    image_url: null
+                    pricing_tiers: []
+                    star_rating: 2.5
+                  relationships:
+                    categories:
+                      data:
+                      - id: c18638bd-f0fa-48e3-89a1-000000000002
+                        type: product_categories
+                    discussions:
+                      data:
+                      - id: c18638bd-f0fa-48e3-89a1-000000000004
+                        type: discussions
+                      links:
+                        related: http://data.lvh.me:63479/api/v2/products/c18638bd-f0fa-48e3-89a1-000000000005/discussions
+                    screenshots:
+                      data: []
+                    vendor:
+                      data:
+                        id: c18638bd-f0fa-48e3-89a1-000000000001
+                        type: vendors
+                included:
+                - id: c18638bd-f0fa-48e3-89a1-000000000002
+                  type: product_categories
+                  attributes:
+                    name: test
+                    slug: test
+                    description: test
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                - id: c18638bd-f0fa-48e3-89a1-000000000004
+                  type: discussions
+                  attributes:
+                    attribution:
+                      text: Verified by G2
+                      url: http://www.lvh.me:63479/products/product-one/reviews
+                      logo: http://www.lvh.me:63479/assets/g2-logo-rorange.svg
+                    comments_count: 0
+                    comments_present: false
+                    content: Some discussion stuff...
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    is_public: true
+                    official_response_present: false
+                    product_id: c18638bd-f0fa-48e3-89a1-000000000005
+                    product_name: Product One
+                    report_url: http://www.lvh.me:63479/discussions/a-discussion/concerns/new
+                    seeded: false
+                    slug: a-discussion
+                    title: A Discussion
+                    type: product_question
+                    url: http://www.lvh.me:63479/discussions/a-discussion
+                    vendor_question: false
+                    verified_current_user: true
+                    votes_down: 0
+                    votes_up: 1
+                    votes_total: 1
+                  relationships:
+                    user:
+                      data:
+                        id: c18638bd-f0fa-48e3-89a1-000000000003
+                        type: users
+                    comments:
+                      data: []
+                - id: c18638bd-f0fa-48e3-89a1-000000000001
+                  type: vendors
+                  attributes:
+                    name: Test Vendor
+                    description: null
+                    company_website: https://example.com
+                    slug: test-vendor
+                    public_products_count: 1
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                  relationships:
+                    products:
+                      data:
+                      - id: c18638bd-f0fa-48e3-89a1-000000000005
+                        type: products
+                links:
+                  self: http://data.example.com/api/v2/products?&&filter%5Breview_count_gteq%5D=&&&filter%5Bvendor_name%5D=&filter%5Bproduct_name_cont%5D=&filter%5Bproduct_name_eq%5D=&&&filter%5Bquery%5D=&fields%5Bproducts%5D=type,detail_description,domain,g2_url,name,public_detail_url,review_count,slug,write_review_url,image_url,pricing_tiers,star_rating&include=categories,discussions,screenshots,vendor
+                  next: null
+                  prev: null
+                meta:
+                  aggregates:
+                  - filter_name: star_rating
+                    collection:
+                    - id: 0
+                      text: Unrated
+                      count: 0
+                    - id: 1
+                      text: 1 Star
+                      count: 0
+                    - id: 2
+                      text: 2 Stars
+                      count: 0
+                    - id: 3
+                      text: 3 Stars
+                      count: 1
+                    - id: 4
+                      text: 4 Stars
+                      count: 0
+                    - id: 5
+                      text: 5 Stars
+                      count: 0
+                  record_count: 1
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              description: Type of product (e.g., "Software", "Hardware")
+                            detail_description:
+                              type: string
+                              description: Detailed description of the product
+                            domain:
+                              type: string
+                              description: Primary domain of the product website
+                              example: salesforce.com
+                            g2_url:
+                              type: string
+                              description: Full URL to the product page on G2
+                              example: https://www.g2.com/products/salesforce-sales-cloud/reviews
+                              format: uri
+                            name:
+                              type: string
+                              description: Name of the product
+                              example: Salesforce Sales Cloud
+                            public_detail_url:
+                              type: string
+                              description: Vendor website URL for the product
+                              example: https://www.salesforce.com
+                              format: uri
+                            review_count:
+                              type: integer
+                              description: Total number of reviews for the product
+                              example: 15234
+                            slug:
+                              type: string
+                              description: URL-friendly identifier for the product
+                              example: salesforce-sales-cloud
+                            write_review_url:
+                              type: string
+                              description: URL to write a review for this product on G2
+                              format: uri
+                            image_url:
+                              type:
+                              - string
+                              - 'null'
+                              description: URL to the product logo or favicon
+                              format: uri
+                            pricing_tiers:
+                              type: array
+                              items:
+                                type: string
+                                x-nullable: false
+                              description: List of pricing tiers with prices
+                              example:
+                              - Free
+                              - Pro ($7.25 per user Per Month)
+                              - Enterprise (Contact Us)
+                            star_rating:
+                              type:
+                              - number
+                              - 'null'
+                              description: Average star rating (1-5 scale)
+                              example: 4.3
+                        relationships:
+                          type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+  /api/v2/products/{product_id}:
+    get:
+      summary: Show single product
+      operationId: getProduct
+      tags:
+      - Products
+      description: '**Requires `products.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: fields[products]
+        in: query
+        explode: false
+        description: Comma separated list of fields for products to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - type
+            - detail_description
+            - domain
+            - g2_url
+            - name
+            - public_detail_url
+            - review_count
+            - slug
+            - write_review_url
+            - image_url
+            - pricing_tiers
+            - star_rating
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. categories,discussions,screenshots,vendor)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - categories
+            - discussions
+            - screenshots
+            - vendor
+      - name: product_id
+        in: path
+        description: The UUID or slug of the product
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful responses
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            description: Type of product (e.g., "Software", "Hardware")
+                          detail_description:
+                            type: string
+                            description: Detailed description of the product
+                          domain:
+                            type: string
+                            description: Primary domain of the product website
+                            example: salesforce.com
+                          g2_url:
+                            type: string
+                            description: Full URL to the product page on G2
+                            example: https://www.g2.com/products/salesforce-sales-cloud/reviews
+                            format: uri
+                          name:
+                            type: string
+                            description: Name of the product
+                            example: Salesforce Sales Cloud
+                          public_detail_url:
+                            type: string
+                            description: Vendor website URL for the product
+                            example: https://www.salesforce.com
+                            format: uri
+                          review_count:
+                            type: integer
+                            description: Total number of reviews for the product
+                            example: 15234
+                          slug:
+                            type: string
+                            description: URL-friendly identifier for the product
+                            example: salesforce-sales-cloud
+                          write_review_url:
+                            type: string
+                            description: URL to write a review for this product on G2
+                            format: uri
+                          image_url:
+                            type:
+                            - string
+                            - 'null'
+                            description: URL to the product logo or favicon
+                            format: uri
+                          pricing_tiers:
+                            type: array
+                            items:
+                              type: string
+                              x-nullable: false
+                            description: List of pricing tiers with prices
+                            example:
+                            - Free
+                            - Pro ($7.25 per user Per Month)
+                            - Enterprise (Contact Us)
+                          star_rating:
+                            type:
+                            - number
+                            - 'null'
+                            description: Average star rating (1-5 scale)
+                            example: 4.3
+                      relationships:
+                        type: object
+                  included:
+                    $ref: '#/components/schemas/included'
+              examples:
+                Single product by UUID:
+                  value:
+                    data:
+                      id: c18638bd-f0fa-48e3-89a1-000000000005
+                      type: products
+                      attributes:
+                        type: Software
+                        detail_description: Description
+                        domain: example.com
+                        g2_url: http://www.lvh.me:63479/products/product-one/reviews
+                        name: Product One
+                        public_detail_url: https://www.example.com
+                        review_count: 0
+                        slug: product-one
+                        write_review_url: http://www.lvh.me:63479/products/product-one/take_survey
+                        image_url: null
+                        pricing_tiers: []
+                        star_rating: 2.5
+                      relationships:
+                        categories:
+                          data:
+                          - id: c18638bd-f0fa-48e3-89a1-000000000002
+                            type: product_categories
+                        discussions:
+                          data:
+                          - id: c18638bd-f0fa-48e3-89a1-000000000004
+                            type: discussions
+                          links:
+                            related: http://data.lvh.me:63479/api/v2/products/c18638bd-f0fa-48e3-89a1-000000000005/discussions
+                        screenshots:
+                          data: []
+                        vendor:
+                          data:
+                            id: c18638bd-f0fa-48e3-89a1-000000000001
+                            type: vendors
+                    included:
+                    - id: c18638bd-f0fa-48e3-89a1-000000000002
+                      type: product_categories
+                      attributes:
+                        name: test
+                        slug: test
+                        description: test
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                    - id: c18638bd-f0fa-48e3-89a1-000000000004
+                      type: discussions
+                      attributes:
+                        attribution:
+                          text: Verified by G2
+                          url: http://www.lvh.me:63479/products/product-one/reviews
+                          logo: http://www.lvh.me:63479/assets/g2-logo-rorange.svg
+                        comments_count: 0
+                        comments_present: false
+                        content: Some discussion stuff...
+                        created_at: '2022-01-01T00:00:00.000-06:00'
+                        is_public: true
+                        official_response_present: false
+                        product_id: c18638bd-f0fa-48e3-89a1-000000000005
+                        product_name: Product One
+                        report_url: http://www.lvh.me:63479/discussions/a-discussion/concerns/new
+                        seeded: false
+                        slug: a-discussion
+                        title: A Discussion
+                        type: product_question
+                        url: http://www.lvh.me:63479/discussions/a-discussion
+                        vendor_question: false
+                        verified_current_user: true
+                        votes_down: 0
+                        votes_up: 1
+                        votes_total: 1
+                      relationships:
+                        user:
+                          data:
+                            id: c18638bd-f0fa-48e3-89a1-000000000003
+                            type: users
+                        comments:
+                          data: []
+                    - id: c18638bd-f0fa-48e3-89a1-000000000001
+                      type: vendors
+                      attributes:
+                        name: Test Vendor
+                        description: null
+                        company_website: https://example.com
+                        slug: test-vendor
+                        public_products_count: 1
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                      relationships:
+                        products:
+                          data:
+                          - id: c18638bd-f0fa-48e3-89a1-000000000005
+                            type: products
+                'When requesting specific fields: (name, domain)':
+                  value:
+                    data:
+                      id: c18638bd-f0fa-48e3-89a1-000000000005
+                      type: products
+                      attributes:
+                        domain: example.com
+                        name: Product One
+                      relationships:
+                        categories:
+                          data:
+                          - id: c18638bd-f0fa-48e3-89a1-000000000002
+                            type: product_categories
+                        discussions:
+                          data:
+                          - id: c18638bd-f0fa-48e3-89a1-000000000004
+                            type: discussions
+                          links:
+                            related: http://data.lvh.me:63479/api/v2/products/c18638bd-f0fa-48e3-89a1-000000000005/discussions
+                        screenshots:
+                          data: []
+                        vendor:
+                          data:
+                            id: c18638bd-f0fa-48e3-89a1-000000000001
+                            type: vendors
+                    included:
+                    - id: c18638bd-f0fa-48e3-89a1-000000000002
+                      type: product_categories
+                      attributes:
+                        name: test
+                        slug: test
+                        description: test
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                    - id: c18638bd-f0fa-48e3-89a1-000000000004
+                      type: discussions
+                      attributes:
+                        attribution:
+                          text: Verified by G2
+                          url: http://www.lvh.me:63479/products/product-one/reviews
+                          logo: http://www.lvh.me:63479/assets/g2-logo-rorange.svg
+                        comments_count: 0
+                        comments_present: false
+                        content: Some discussion stuff...
+                        created_at: '2022-01-01T00:00:00.000-06:00'
+                        is_public: true
+                        official_response_present: false
+                        product_id: c18638bd-f0fa-48e3-89a1-000000000005
+                        product_name: Product One
+                        report_url: http://www.lvh.me:63479/discussions/a-discussion/concerns/new
+                        seeded: false
+                        slug: a-discussion
+                        title: A Discussion
+                        type: product_question
+                        url: http://www.lvh.me:63479/discussions/a-discussion
+                        vendor_question: false
+                        verified_current_user: true
+                        votes_down: 0
+                        votes_up: 1
+                        votes_total: 1
+                      relationships:
+                        user:
+                          data:
+                            id: c18638bd-f0fa-48e3-89a1-000000000003
+                            type: users
+                        comments:
+                          data: []
+                    - id: c18638bd-f0fa-48e3-89a1-000000000001
+                      type: vendors
+                      attributes:
+                        name: Test Vendor
+                        description: null
+                        company_website: https://example.com
+                        slug: test-vendor
+                        public_products_count: 1
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                      relationships:
+                        products:
+                          data:
+                          - id: c18638bd-f0fa-48e3-89a1-000000000005
+                            type: products
+              example:
+                data:
+                  id: c18638bd-f0fa-48e3-89a1-000000000005
+                  type: products
+                  attributes:
+                    domain: example.com
+                    name: Product One
+                    type: Software
+                    detail_description: Description
+                    g2_url: http://www.lvh.me:63479/products/product-one/reviews
+                    public_detail_url: https://www.example.com
+                    review_count: 0
+                    slug: product-one
+                    write_review_url: http://www.lvh.me:63479/products/product-one/take_survey
+                    image_url: null
+                    pricing_tiers: []
+                    star_rating: 2.5
+                  relationships:
+                    categories:
+                      data:
+                      - id: c18638bd-f0fa-48e3-89a1-000000000002
+                        type: product_categories
+                    discussions:
+                      data:
+                      - id: c18638bd-f0fa-48e3-89a1-000000000004
+                        type: discussions
+                      links:
+                        related: http://data.lvh.me:63479/api/v2/products/c18638bd-f0fa-48e3-89a1-000000000005/discussions
+                    screenshots:
+                      data: []
+                    vendor:
+                      data:
+                        id: c18638bd-f0fa-48e3-89a1-000000000001
+                        type: vendors
+                included:
+                - id: c18638bd-f0fa-48e3-89a1-000000000002
+                  type: product_categories
+                  attributes:
+                    name: test
+                    slug: test
+                    description: test
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                - id: c18638bd-f0fa-48e3-89a1-000000000004
+                  type: discussions
+                  attributes:
+                    attribution:
+                      text: Verified by G2
+                      url: http://www.lvh.me:63479/products/product-one/reviews
+                      logo: http://www.lvh.me:63479/assets/g2-logo-rorange.svg
+                    comments_count: 0
+                    comments_present: false
+                    content: Some discussion stuff...
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    is_public: true
+                    official_response_present: false
+                    product_id: c18638bd-f0fa-48e3-89a1-000000000005
+                    product_name: Product One
+                    report_url: http://www.lvh.me:63479/discussions/a-discussion/concerns/new
+                    seeded: false
+                    slug: a-discussion
+                    title: A Discussion
+                    type: product_question
+                    url: http://www.lvh.me:63479/discussions/a-discussion
+                    vendor_question: false
+                    verified_current_user: true
+                    votes_down: 0
+                    votes_up: 1
+                    votes_total: 1
+                  relationships:
+                    user:
+                      data:
+                        id: c18638bd-f0fa-48e3-89a1-000000000003
+                        type: users
+                    comments:
+                      data: []
+                - id: c18638bd-f0fa-48e3-89a1-000000000001
+                  type: vendors
+                  attributes:
+                    name: Test Vendor
+                    description: null
+                    company_website: https://example.com
+                    slug: test-vendor
+                    public_products_count: 1
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                  relationships:
+                    products:
+                      data:
+                      - id: c18638bd-f0fa-48e3-89a1-000000000005
+                        type: products
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: With invalid id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+  /api/v2/users/me/products:
+    get:
+      summary: List all products owned by current account
+      operationId: getCurrentUserProducts
+      tags:
+      - Products
+      description: '**⚠️ G2 is currently restricting access to this endpoint.**
+
+        This endpoint shows subscription-specific product information, of
+
+        products that the current account has ownership of.
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: fields[products]
+        in: query
+        explode: false
+        description: Comma separated list of fields for products to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - name
+            - domain
+            - slug
+            - image_url
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. categories,subscribed_categories)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - categories
+            - subscribed_categories
+      - name: filter[product_id][]
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+        required: false
+        description: Filter by one or more product UUIDs
+        example:
+        - a1b2c3d4-e5f6-7890-abcd-ef1234567890
+      - name: filter[slug][]
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+        required: false
+        description: Filter by one or more product slugs
+        example:
+        - salesforce-sales-cloud
+        - hubspot-crm
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: With all fields and relationships
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: ee3d9e4d-55e2-427c-8f24-000000000004
+                  type: products
+                  attributes:
+                    name: test product 340
+                    domain: example.com
+                    slug: test-product-340
+                    image_url: null
+                  relationships:
+                    categories:
+                      data:
+                      - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000008
+                        type: product_categories
+                    subscribed_categories:
+                      data:
+                      - id: ee3d9e4d-55e2-427c-8f24-000000000003
+                        type: product_categories
+                included:
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000008
+                  type: product_categories
+                  attributes:
+                    name: test
+                    slug: test
+                    description: test
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                - id: ee3d9e4d-55e2-427c-8f24-000000000003
+                  type: product_categories
+                  attributes:
+                    name: Subscribed Category
+                    slug: subscribed-category
+                    description: test
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                links:
+                  self: http://data.example.com/api/v2/users/me/products?fields%5Bproducts%5D=name,domain,slug,image_url&include=categories,subscribed_categories&&
+                  next: null
+                  prev: null
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            domain:
+                              type: string
+                            slug:
+                              type: string
+                            image_url:
+                              type:
+                              - string
+                              - 'null'
+                        relationships:
+                          type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            uuid:
+                              type: string
+                            name:
+                              type: string
+                            slug:
+                              type: string
+                            description:
+                              type:
+                              - string
+                              - 'null'
+                            updated_at:
+                              type: string
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

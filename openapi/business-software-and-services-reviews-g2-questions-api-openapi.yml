@@ -1,0 +1,419 @@
+openapi: 3.2.0
+info:
+  title: G2 Questions API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Questions
+paths:
+  /api/v2/questions:
+    get:
+      summary: List of questions
+      operationId: getQuestions
+      tags:
+      - Questions
+      description: '**Requires `questions.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: filter[updated_at_gt]
+        description: Filter records updated after this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[updated_at_lt]
+        description: Filter records updated before this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[created_at_gt]
+        description: Filter records created after this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[created_at_lt]
+        description: Filter records created before this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: fields[questions]
+        in: query
+        explode: false
+        description: Comma separated list of fields for questions to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - title
+            - text_template
+            - is_required
+            - description
+            - question_type
+            - input_type
+            - updated_at
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. categories)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - categories
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Successful responses
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: '1445'
+                  type: questions
+                  attributes:
+                    title: For which purposes do you use this product?
+                    text_template: For which purposes do you use %{product_name}?
+                    is_required: true
+                    description: description
+                    question_type: categories
+                    input_type: categories
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                  relationships:
+                    categories:
+                      data: []
+                links:
+                  self: http://data.example.com/api/v2/questions?filter%5Bupdated_at_gt%5D=&filter%5Bupdated_at_lt%5D=&filter%5Bcreated_at_gt%5D=&filter%5Bcreated_at_lt%5D=&fields%5Bquestions%5D=title,text_template,is_required,description,question_type,input_type,updated_at&include=categories
+                  next: null
+                  prev: null
+                meta:
+                  record_count: 1
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            title:
+                              type:
+                              - string
+                              - 'null'
+                              description: Question title
+                            text_template:
+                              type:
+                              - string
+                              - 'null'
+                              description: Question text template
+                            is_required:
+                              type: boolean
+                              description: Whether the question is required
+                            description:
+                              type:
+                              - string
+                              - 'null'
+                              description: Question description
+                            question_type:
+                              type:
+                              - string
+                              - 'null'
+                              description: Question type
+                            input_type:
+                              type:
+                              - string
+                              - 'null'
+                              description: Input type for the question
+                            updated_at:
+                              type: string
+                              description: Last updated timestamp
+                              format: date-time
+                        relationships:
+                          type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+  /api/v2/questions/{id}:
+    get:
+      summary: Shows a single question
+      operationId: getQuestion
+      tags:
+      - Questions
+      description: '**Requires `questions.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: fields[questions]
+        in: query
+        explode: false
+        description: Comma separated list of fields for questions to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - title
+            - text_template
+            - is_required
+            - description
+            - question_type
+            - input_type
+            - updated_at
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. categories)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - categories
+      - name: id
+        in: path
+        description: Question ID
+        required: true
+        schema:
+          type: string
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: With invalid id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Question details with all fields included
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: '1450'
+                  type: questions
+                  attributes:
+                    title: For which purposes do you use this product?
+                    text_template: For which purposes do you use %{product_name}?
+                    is_required: true
+                    description: description
+                    question_type: categories
+                    input_type: categories
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                  relationships:
+                    categories:
+                      data: []
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type:
+                            - string
+                            - 'null'
+                            description: Question title
+                          text_template:
+                            type:
+                            - string
+                            - 'null'
+                            description: Question text template
+                          is_required:
+                            type: boolean
+                            description: Whether the question is required
+                          description:
+                            type:
+                            - string
+                            - 'null'
+                            description: Question description
+                          question_type:
+                            type:
+                            - string
+                            - 'null'
+                            description: Question type
+                          input_type:
+                            type:
+                            - string
+                            - 'null'
+                            description: Input type for the question
+                          updated_at:
+                            type: string
+                            description: Last updated timestamp
+                            format: date-time
+                      relationships:
+                        type: object
+                  included:
+                    $ref: '#/components/schemas/included'
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

@@ -1,0 +1,1504 @@
+openapi: 3.2.0
+info:
+  title: G2 Reviews API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Reviews
+paths:
+  /api/v2/products/{product_id}/reviews:
+    get:
+      summary: Lists reviews of given product
+      operationId: getProductReviews
+      tags:
+      - Reviews
+      description: '**Requires `products.reviews.read` scope.**
+
+
+        For filters that require integer IDs, the appropriate IDs are available in the meta aggregates of this endpoint.
+
+        Suggestion: Query reviews for your product and then use filtering based on data returned to narrow results.
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: product_id
+        in: path
+        description: Product UUID or Slug
+        required: true
+        schema:
+          type: string
+      - name: filter[updated_at_gt]
+        description: Filter records updated after this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[updated_at_lt]
+        description: Filter records updated before this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[category_ids][]
+        description: Filter reviews by category IDs
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[comment_answer_values_exclude]
+        description: Exclude reviews with specific comment answer values
+        in: query
+        schema:
+          type: string
+      - name: filter[company_segment][]
+        description: "Filter by company size segment\n\n - Company Segment ID: `179` => `Small-Business` *(0-50 employees)*\n\n - Company Segment ID: `180` => `Mid-Market` *(51-1000 employees)*\n\n - Company Segment ID: `181` => `Enterprise` *(1001-Infinity employees)*\n\n"
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[country][]
+        description: Filter by country names
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[industry][]
+        description: Filter by industry IDs
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[nps_score][]
+        description: Filter by NPS scores (0-10)
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[region][]
+        description: Filter by geographic regions
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[role][]
+        description: Filter by user role IDs
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: filter[removed]
+        description: Filter to show only removed reviews
+        in: query
+        schema:
+          type: string
+      - name: serializer
+        in: query
+        type: string
+        required: false
+        description: Serializer type (market_intelligence or default)
+        schema:
+          enum:
+          - market_intelligence
+      - name: fields[reviews]
+        in: query
+        description: "Comma-separated list of fields to include. Available fields vary based on context:\n\n- Default (standard serializer): answers, attribution, comments_present, country_name, default_sort, is_public,\n           official_response_present, percent_complete, product_name, published_at, regions, review_incentive, slug,\n           source, star_rating, submitted_at, title, url, user_updated_at, verified_current_user.\n\n- With serializer=market_intelligence: answers, category_names, company_segment_name, country_code, country_name,\n           feature_ratings, industry_name, primary_region_name, product_name, rating, switched_from_products,\n           switched_theme, title, url, user_company_name, user_updated_at.\n\n- With filter[removed]=true: product_name, removed_at, slug, submitted_at"
+        schema:
+          oneOf:
+          - type: array
+            items:
+              type: string
+              enum:
+              - answers
+              - attribution
+              - comments_present
+              - country_name
+              - default_sort
+              - is_public
+              - official_response_present
+              - percent_complete
+              - product_name
+              - published_at
+              - regions
+              - review_incentive
+              - slug
+              - source
+              - star_rating
+              - submitted_at
+              - title
+              - url
+              - user_updated_at
+              - verified_current_user
+            title: Standard serializer fields
+          - type: array
+            items:
+              type: string
+              enum:
+              - answers
+              - category_names
+              - company_segment_name
+              - country_code
+              - country_name
+              - feature_ratings
+              - industry_name
+              - primary_region_name
+              - product_name
+              - rating
+              - switched_from_products
+              - switched_theme
+              - title
+              - url
+              - user_company_name
+              - user_updated_at
+            title: Market intelligence serializer fields
+          - type: array
+            items:
+              type: string
+              enum:
+              - product_name
+              - removed_at
+              - slug
+              - submitted_at
+            title: Removed reviews fields
+        explode: false
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. user)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - user
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+              examples:
+                when user does not have access to the product:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: You do not have access to that resource
+                when user has product access but lacks the required license:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                      links:
+                        type:
+                        - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+              example:
+                errors:
+                - status: '403'
+                  title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                  links:
+                    type:
+                    - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+        '404':
+          description: With invalid id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: With all fields included
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            answers:
+                              type: object
+                              description: Formatted question answers (pros, cons, etc.)
+                              properties: {}
+                            attribution:
+                              type: object
+                              description: Attribution information for syndication
+                              properties: {}
+                            comments_present:
+                              type: boolean
+                              description: Whether comments are present on the review
+                            country_name:
+                              type: string
+                              description: Country of the reviewer
+                            default_sort:
+                              type: number
+                              description: Default sort score for the review
+                            is_public:
+                              type: boolean
+                              description: Whether the review is public
+                            official_response_present:
+                              type: boolean
+                              description: Whether vendor has responded
+                            percent_complete:
+                              type: number
+                              description: Completion percentage of the review
+                              example: 85.9
+                            product_name:
+                              type: string
+                              description: Name of the reviewed product
+                            published_at:
+                              type: string
+                              description: When the review was published
+                              format: date-time
+                            regions:
+                              type: array
+                              items:
+                                type: string
+                              description: Geographic regions associated with the reviewer
+                            review_incentive:
+                              type: boolean
+                              description: Whether the review was incentivized
+                            slug:
+                              type: string
+                              description: URL-friendly identifier
+                              example: great-product-for-our-team
+                            source:
+                              type: string
+                              description: Source of the review (e.g., "G2", "Incentivized")
+                            star_rating:
+                              type: number
+                              description: Star rating (1-5 scale)
+                              example: 4.5
+                            submitted_at:
+                              type: string
+                              description: When the review was submitted
+                              format: date-time
+                            title:
+                              type: string
+                              description: Review title
+                              example: Great product for our team
+                            url:
+                              type: string
+                              description: Full URL to the review on G2
+                              format: uri
+                            user_updated_at:
+                              type: string
+                              description: When the user profile was last updated
+                              format: date-time
+                            verified_current_user:
+                              type: boolean
+                              description: Whether the reviewer is a verified current user
+                        relationships:
+                          type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+              examples:
+                with standard G2 reviews:
+                  value:
+                    data:
+                    - id: 41eb24b6-81ac-4269-8ec9-000000000002
+                      type: reviews
+                      attributes:
+                        answers:
+                          love:
+                            text: What do you like best?
+                            value: I like...
+                          hate:
+                            text: What do you dislike?
+                            value: I dislike...
+                          recommendations:
+                            text: What recommendations would you have?
+                            value: I recommend...
+                          benefits:
+                            text: What benefits have you realized?
+                            value: I benefit...
+                        attribution:
+                          text: Verified by G2
+                          url: http://www.lvh.me:63479/products/product-one/reviews/product-one-review-194
+                          logo: http://www.lvh.me:63479/assets/g2-logo-rorange.svg
+                        comments_present: false
+                        country_name: United States
+                        default_sort: 0.8
+                        is_public: true
+                        official_response_present: false
+                        percent_complete: 0.9
+                        product_name: Product One
+                        published_at: '2021-12-01T00:00:00.000-06:00'
+                        regions: []
+                        review_incentive: false
+                        slug: product-one-review-194
+                        source: Organic review. This review was written entirely without invitation or incentive from G2, a seller, or an affiliate.
+                        star_rating: 2.5
+                        submitted_at: '2022-01-01T00:00:00.000-06:00'
+                        title: Review title
+                        url: http://www.lvh.me:63479/products/product-one/reviews/product-one-review-194
+                        user_updated_at: '2022-01-01T00:00:00.000-06:00'
+                        verified_current_user: false
+                      relationships:
+                        user:
+                          data:
+                            id: aaaaaaaa-bbbb-4ccc-8ddd-000000000040
+                            type: users
+                    included:
+                    - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000040
+                      type: users
+                      attributes:
+                        industry: Internet
+                        name: alex smith
+                        first_name: alex
+                        last_name: smith
+                        image: null
+                        company: null
+                        title: null
+                        company_segment: ' '
+                    links:
+                      self: http://data.example.com/api/v2/products/41eb24b6-81ac-4269-8ec9-000000000001/reviews?filter%5Bupdated_at_gt%5D=&filter%5Bupdated_at_lt%5D=&&filter%5Bcomment_answer_values_exclude%5D=&&&&&&&filter%5Bremoved%5D=&fields%5Breviews%5D=answers%2Cattribution%2Ccomments_present%2Ccountry_name%2Cdefault_sort%2Cis_public%2Cofficial_response_present%2Cpercent_complete%2Cproduct_name%2Cpublished_at%2Cregions%2Creview_incentive%2Cslug%2Csource%2Cstar_rating%2Csubmitted_at%2Ctitle%2Curl%2Cuser_updated_at%2Cverified_current_user&include=user
+                      next: null
+                      prev: null
+                    meta:
+                      aggregates:
+                      - filter_name: nps_score
+                        nested_filter_name: null
+                        collection:
+                        - id: 5
+                          text: 5 star
+                          count: 0
+                          checked: false
+                          nested_boxes: []
+                        - id: 4
+                          text: 4 star
+                          count: 0
+                          checked: false
+                          nested_boxes: []
+                        - id: 3
+                          text: 3 star
+                          count: 1
+                          checked: false
+                          nested_boxes: []
+                        - id: 2
+                          text: 2 star
+                          count: 0
+                          checked: false
+                          nested_boxes: []
+                        - id: 1
+                          text: 1 star
+                          count: 0
+                          checked: false
+                          nested_boxes: []
+                        expanded: true
+                      record_count: 1
+                      products:
+                      - name: Product One
+                        domain: example.com
+                        slug: product-one
+                        product_type: Software
+                        star_rating: 2.5
+                        avg_rating: '5.0'
+                        detail_description: Description
+                        review_count: 0
+                        image_url: null
+                        public_detail_url: null
+                        g2crowd_url: http://www.lvh.me:63479/products/product-one/reviews
+                        write_review_url: http://www.lvh.me:63479/products/product-one/take_survey
+                with Market Intelligence reviews:
+                  value:
+                    data:
+                    - id: 41eb24b6-81ac-4269-8ec9-000000000002
+                      type: reviews
+                      attributes:
+                        url: http://www.lvh.me:63479/products/product-one/reviews/product-one-review-196
+                        title: Review title
+                        rating: 5.0
+                        user_updated_at: '2022-01-01T00:00:00.000-06:00'
+                        user_company_name: null
+                        product_name: Product One
+                        company_segment_name: Mid-Market
+                        industry_name: Accounting
+                        primary_region_name: null
+                        country_name: United States
+                        country_code: US
+                        switched_theme: []
+                        category_names: []
+                        switched_from_products: []
+                        answers:
+                          nps:
+                            text: How likely is it that you would recommend the product to a friend or colleague?
+                            value: 5.0
+                          ease_of_setup:
+                            text: Ease of Setup
+                            value: 0.0
+                          ease_of_doing_business_with:
+                            text: Ease of Doing Business With
+                            value: 0.5
+                          meets_requirements:
+                            text: Meets Requirements
+                            value: 1.0
+                          ease_of_admin:
+                            text: Ease of Admin
+                            value: 1.5
+                          ease_of_use:
+                            text: Ease of Use
+                            value: 2.0
+                          quality_of_support:
+                            text: Quality of Support
+                            value: 2.5
+                          love:
+                            text: What do you like best?
+                            value: I like...
+                          hate:
+                            text: What do you dislike?
+                            value: I dislike...
+                          recommendations:
+                            text: What recommendations would you have?
+                            value: I recommend...
+                          benefits:
+                            text: What benefits have you realized?
+                            value: I benefit...
+                          price:
+                            text: simplistic
+                            value: 3.0
+                          product_role:
+                            text: What is your primary role when using the product?
+                            value: User
+                          time_used:
+                            text: What is your level of experience with the product?
+                            value: Failed to go Live
+                          implementation_year:
+                            text: When did you implement the product?
+                            value: 2006-07
+                          implementation:
+                            text: How did you implement?
+                            value: Vendor Services Team
+                          deployment:
+                            text: Did you deploy in the cloud?
+                            value: 'No'
+                          go_live_time:
+                            text: How long did it take you to go live?
+                            value: < 1 day
+                          investment_level:
+                            text: What were your one-time costs for setting up the product?
+                            value: $250,000-499,999
+                          annual_cost:
+                            text: What is your annual recurring cost for using the product?
+                            value: $250,000-499,999
+                          contract_length:
+                            text: simplistic
+                            value: 1 Year
+                          discount:
+                            text: simplistic
+                            value: 21-30%
+                          users_purchased:
+                            text: How many users purchased the product in your company?
+                            value: 5,000-9,999
+                          adoption:
+                            text: What % of your users have fully adopted the system?
+                            value: 11-30%
+                          roi:
+                            text: simplistic
+                            value: 24-36 months
+                          switched_from_other_product:
+                            text: simplistic
+                            value: Don't know
+                          direction:
+                            text: simplistic
+                            value: Don't know
+                          implementation_consultant:
+                            text: null
+                            value: null
+                          switched_reason:
+                            text: null
+                            value: null
+                        feature_ratings:
+                        - category: Category Name
+                          section: Section Name
+                          question_title: Feature Question Title
+                          question_text: Feature Question Text
+                          answer_value: 5.0
+                      relationships:
+                        user:
+                          data:
+                            id: aaaaaaaa-bbbb-4ccc-8ddd-000000000040
+                            type: users
+                    included:
+                    - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000040
+                      type: users
+                      attributes:
+                        industry: Accounting
+                        name: alex smith
+                        first_name: alex
+                        last_name: smith
+                        image: null
+                        company: null
+                        title: null
+                        company_segment: Mid-Market (51-1,000 emp.)
+                    links:
+                      self: http://data.example.com/api/v2/products/41eb24b6-81ac-4269-8ec9-000000000001/reviews?filter%5Bupdated_at_gt%5D=&filter%5Bupdated_at_lt%5D=&&filter%5Bcomment_answer_values_exclude%5D=&&&&&&&filter%5Bremoved%5D=&serializer=market_intelligence&fields%5Breviews%5D=url%2Ctitle%2Crating%2Cuser_updated_at%2Cuser_company_name%2Cproduct_name%2Ccompany_segment_name%2Cindustry_name%2Cprimary_region_name%2Ccountry_name%2Ccountry_code%2Cswitched_theme%2Ccategory_names%2Cswitched_from_products%2Canswers%2Cfeature_ratings&include=user
+                      next: null
+                      prev: null
+                    meta:
+                      aggregates:
+                      - filter_name: nps_score
+                        nested_filter_name: null
+                        collection:
+                        - id: 5
+                          text: 5 star
+                          count: 0
+                          checked: false
+                          nested_boxes: []
+                        - id: 4
+                          text: 4 star
+                          count: 0
+                          checked: false
+                          nested_boxes: []
+                        - id: 3
+                          text: 3 star
+                          count: 1
+                          checked: false
+                          nested_boxes: []
+                        - id: 2
+                          text: 2 star
+                          count: 0
+                          checked: false
+                          nested_boxes: []
+                        - id: 1
+                          text: 1 star
+                          count: 0
+                          checked: false
+                          nested_boxes: []
+                        expanded: true
+                      record_count: 1
+                      products:
+                      - name: Product One
+                        domain: example.com
+                        slug: product-one
+                        product_type: Software
+                        star_rating: 2.5
+                        avg_rating: '5.0'
+                        detail_description: Description
+                        review_count: 0
+                        image_url: null
+                        public_detail_url: null
+                        g2crowd_url: http://www.lvh.me:63479/products/product-one/reviews
+                        write_review_url: http://www.lvh.me:63479/products/product-one/take_survey
+              example:
+                data: []
+                included:
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000040
+                  type: users
+                  attributes:
+                    industry: Accounting
+                    name: alex smith
+                    first_name: alex
+                    last_name: smith
+                    image: null
+                    company: null
+                    title: null
+                    company_segment: Mid-Market (51-1,000 emp.)
+                links:
+                  self: http://data.example.com/api/v2/products/41eb24b6-81ac-4269-8ec9-000000000001/reviews?filter%5Bupdated_at_gt%5D=&filter%5Bupdated_at_lt%5D=&&filter%5Bcomment_answer_values_exclude%5D=&&&&&&&filter%5Bremoved%5D=true&fields%5Breviews%5D=slug%2Cproduct_name%2Cremoved_at%2Csubmitted_at&include=
+                  next: null
+                  prev: null
+                meta:
+                  aggregates:
+                  - filter_name: nps_score
+                    nested_filter_name: null
+                    collection:
+                    - id: 5
+                      text: 5 star
+                      count: 0
+                      checked: false
+                      nested_boxes: []
+                    - id: 4
+                      text: 4 star
+                      count: 0
+                      checked: false
+                      nested_boxes: []
+                    - id: 3
+                      text: 3 star
+                      count: 1
+                      checked: false
+                      nested_boxes: []
+                    - id: 2
+                      text: 2 star
+                      count: 0
+                      checked: false
+                      nested_boxes: []
+                    - id: 1
+                      text: 1 star
+                      count: 0
+                      checked: false
+                      nested_boxes: []
+                    expanded: true
+                  record_count: 0
+                  products:
+                  - name: Product One
+                    domain: example.com
+                    slug: product-one
+                    product_type: Software
+                    star_rating: 2.5
+                    avg_rating: '5.0'
+                    detail_description: Description
+                    review_count: 0
+                    image_url: null
+                    public_detail_url: null
+                    g2crowd_url: http://www.lvh.me:63479/products/product-one/reviews
+                    write_review_url: http://www.lvh.me:63479/products/product-one/take_survey
+  /api/v2/users/me/products/{product_id}/review:
+    get:
+      summary: Show review for a product
+      operationId: getCurrentUserProductReview
+      tags:
+      - Reviews
+      description: '**⚠️ G2 is currently restricting access to this endpoint.**
+
+        This endpoint retrieves the review for a specific product owned by the current user.
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fields[reviews]
+        in: query
+        explode: false
+        description: Comma separated list of fields for reviews to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - questions
+            - published_at
+            - submitted_at
+            - user_updated_at
+            - url
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. user,answers)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - user
+            - answers
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Not Authorized
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '403'
+                  title: You do not have access to that resource
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: Review not found
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Successful retrieval of review
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      questions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            label:
+                              type: string
+                            placeholder:
+                              type:
+                              - string
+                              - 'null'
+                            is_required:
+                              type: boolean
+                            question_type:
+                              type: string
+                            format:
+                              type:
+                              - string
+                              - 'null'
+                            min:
+                              type:
+                              - number
+                              - 'null'
+                            max:
+                              type:
+                              - number
+                              - 'null'
+                            choices:
+                              type:
+                              - array
+                              - 'null'
+                              items:
+                                type: object
+                                properties:
+                                  key:
+                                    type: string
+                                  value:
+                                    type: string
+                      url:
+                        type:
+                        - string
+                        - 'null'
+                      submitted_at:
+                        type: string
+                      published_at:
+                        type: string
+                      user_updated_at:
+                        type: string
+                  included:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        attributes:
+                          type: object
+              examples:
+                with standard request:
+                  value:
+                    data:
+                      id: f9a5c8e7-17e5-4f41-8792-000000000003
+                      type: reviews
+                      attributes:
+                        questions:
+                        - id: 1604
+                          label: How likely is it that you would recommend the product to a friend or colleague?
+                          placeholder: null
+                          required: true
+                          question_type: nps
+                          format: integer
+                          min: 0
+                          max: 10
+                          choices: null
+                        - id: 1605
+                          label: Title for your review
+                          placeholder: null
+                          required: true
+                          question_type: title
+                          format: text
+                          min: null
+                          max: null
+                          choices: null
+                        - id: 1606
+                          label: What do you like best?
+                          placeholder: null
+                          required: null
+                          question_type: love
+                          format: text
+                          min: null
+                          max: null
+                          choices: null
+                        - id: 1607
+                          label: What do you dislike?
+                          placeholder: null
+                          required: null
+                          question_type: hate
+                          format: text
+                          min: null
+                          max: null
+                          choices: null
+                        - id: 1609
+                          label: What benefits have you realized?
+                          placeholder: null
+                          required: null
+                          question_type: benefits
+                          format: text
+                          min: null
+                          max: null
+                          choices: null
+                        - id: 999001
+                          label: Are you willing to be a reference for this software product or service?
+                          placeholder: null
+                          required: true
+                          question_type: reference_user_consent
+                          format: bool
+                          min: null
+                          max: null
+                          choices: null
+                        - id: 999004
+                          label: Allow my review to show my name and face in the G2 community.
+                          placeholder: null
+                          required: null
+                          question_type: withhold_name
+                          format: bool
+                          min: null
+                          max: null
+                          choices: null
+                        published_at: null
+                        submitted_at: '2022-01-01T00:00:00.000-06:00'
+                        user_updated_at: '2022-01-01T00:00:00.000-06:00'
+                        url: http://www.lvh.me:63479/products/test-product-368/reviews/test-product-368-review-223
+                      relationships:
+                        user:
+                          data:
+                            id: f9a5c8e7-17e5-4f41-8792-000000000001
+                            type: users
+                        answers:
+                          data:
+                          - id: '509'
+                            type: answers
+                          - id: '510'
+                            type: answers
+                          - id: '511'
+                            type: answers
+                          - id: '512'
+                            type: answers
+                          - id: '513'
+                            type: answers
+                          - id: '514'
+                            type: answers
+                with includes:
+                  value:
+                    data:
+                      id: f9a5c8e7-17e5-4f41-8792-000000000003
+                      type: reviews
+                      attributes:
+                        questions:
+                        - id: 1610
+                          label: How likely is it that you would recommend the product to a friend or colleague?
+                          placeholder: null
+                          required: true
+                          question_type: nps
+                          format: integer
+                          min: 0
+                          max: 10
+                          choices: null
+                        - id: 1611
+                          label: Title for your review
+                          placeholder: null
+                          required: true
+                          question_type: title
+                          format: text
+                          min: null
+                          max: null
+                          choices: null
+                        - id: 1612
+                          label: What do you like best?
+                          placeholder: null
+                          required: null
+                          question_type: love
+                          format: text
+                          min: null
+                          max: null
+                          choices: null
+                        - id: 1613
+                          label: What do you dislike?
+                          placeholder: null
+                          required: null
+                          question_type: hate
+                          format: text
+                          min: null
+                          max: null
+                          choices: null
+                        - id: 1615
+                          label: What benefits have you realized?
+                          placeholder: null
+                          required: null
+                          question_type: benefits
+                          format: text
+                          min: null
+                          max: null
+                          choices: null
+                        - id: 999001
+                          label: Are you willing to be a reference for this software product or service?
+                          placeholder: null
+                          required: true
+                          question_type: reference_user_consent
+                          format: bool
+                          min: null
+                          max: null
+                          choices: null
+                        - id: 999004
+                          label: Allow my review to show my name and face in the G2 community.
+                          placeholder: null
+                          required: null
+                          question_type: withhold_name
+                          format: bool
+                          min: null
+                          max: null
+                          choices: null
+                        published_at: null
+                        submitted_at: '2022-01-01T00:00:00.000-06:00'
+                        user_updated_at: '2022-01-01T00:00:00.000-06:00'
+                        url: http://www.lvh.me:63479/products/test-product-369/reviews/test-product-369-review-224
+                      relationships:
+                        user:
+                          data:
+                            id: f9a5c8e7-17e5-4f41-8792-000000000001
+                            type: users
+                        answers:
+                          data:
+                          - id: '515'
+                            type: answers
+                          - id: '516'
+                            type: answers
+                          - id: '517'
+                            type: answers
+                          - id: '518'
+                            type: answers
+                          - id: '519'
+                            type: answers
+                          - id: '520'
+                            type: answers
+                    included:
+                    - id: f9a5c8e7-17e5-4f41-8792-000000000001
+                      type: users
+                      attributes:
+                        industry: Internet
+                        name: alex smith
+                        first_name: alex
+                        last_name: smith
+                        image: null
+                        company: null
+                        title: null
+                        company_segment: ' '
+                    - id: '515'
+                      type: answers
+                      attributes:
+                        question_id: 1610
+                        value: 5.0
+                        comment: null
+                        multipart_data: {}
+                        created_at: '2022-01-01T00:00:00.000-06:00'
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                    - id: '516'
+                      type: answers
+                      attributes:
+                        question_id: 1611
+                        value: null
+                        comment: Review title
+                        multipart_data: {}
+                        created_at: '2022-01-01T00:00:00.000-06:00'
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                    - id: '517'
+                      type: answers
+                      attributes:
+                        question_id: 1612
+                        value: null
+                        comment: I like...
+                        multipart_data: {}
+                        created_at: '2022-01-01T00:00:00.000-06:00'
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                    - id: '518'
+                      type: answers
+                      attributes:
+                        question_id: 1613
+                        value: null
+                        comment: I dislike...
+                        multipart_data: {}
+                        created_at: '2022-01-01T00:00:00.000-06:00'
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                    - id: '519'
+                      type: answers
+                      attributes:
+                        question_id: 1614
+                        value: null
+                        comment: I recommend...
+                        multipart_data: {}
+                        created_at: '2022-01-01T00:00:00.000-06:00'
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                    - id: '520'
+                      type: answers
+                      attributes:
+                        question_id: 1615
+                        value: null
+                        comment: I benefit...
+                        multipart_data: {}
+                        created_at: '2022-01-01T00:00:00.000-06:00'
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+              example:
+                data:
+                  id: f9a5c8e7-17e5-4f41-8792-000000000003
+                  type: reviews
+                  attributes:
+                    questions:
+                    - id: 1610
+                      label: How likely is it that you would recommend the product to a friend or colleague?
+                      placeholder: null
+                      required: true
+                      question_type: nps
+                      format: integer
+                      min: 0
+                      max: 10
+                      choices: null
+                    - id: 1611
+                      label: Title for your review
+                      placeholder: null
+                      required: true
+                      question_type: title
+                      format: text
+                      min: null
+                      max: null
+                      choices: null
+                    - id: 1612
+                      label: What do you like best?
+                      placeholder: null
+                      required: null
+                      question_type: love
+                      format: text
+                      min: null
+                      max: null
+                      choices: null
+                    - id: 1613
+                      label: What do you dislike?
+                      placeholder: null
+                      required: null
+                      question_type: hate
+                      format: text
+                      min: null
+                      max: null
+                      choices: null
+                    - id: 1615
+                      label: What benefits have you realized?
+                      placeholder: null
+                      required: null
+                      question_type: benefits
+                      format: text
+                      min: null
+                      max: null
+                      choices: null
+                    - id: 999001
+                      label: Are you willing to be a reference for this software product or service?
+                      placeholder: null
+                      required: true
+                      question_type: reference_user_consent
+                      format: bool
+                      min: null
+                      max: null
+                      choices: null
+                    - id: 999004
+                      label: Allow my review to show my name and face in the G2 community.
+                      placeholder: null
+                      required: null
+                      question_type: withhold_name
+                      format: bool
+                      min: null
+                      max: null
+                      choices: null
+                    published_at: null
+                    submitted_at: '2022-01-01T00:00:00.000-06:00'
+                    user_updated_at: '2022-01-01T00:00:00.000-06:00'
+                    url: http://www.lvh.me:63479/products/test-product-369/reviews/test-product-369-review-224
+                  relationships:
+                    user:
+                      data:
+                        id: f9a5c8e7-17e5-4f41-8792-000000000001
+                        type: users
+                    answers:
+                      data:
+                      - id: '515'
+                        type: answers
+                      - id: '516'
+                        type: answers
+                      - id: '517'
+                        type: answers
+                      - id: '518'
+                        type: answers
+                      - id: '519'
+                        type: answers
+                      - id: '520'
+                        type: answers
+                included:
+                - id: f9a5c8e7-17e5-4f41-8792-000000000001
+                  type: users
+                  attributes:
+                    industry: Internet
+                    name: alex smith
+                    first_name: alex
+                    last_name: smith
+                    image: null
+                    company: null
+                    title: null
+                    company_segment: ' '
+                - id: '515'
+                  type: answers
+                  attributes:
+                    question_id: 1610
+                    value: 5.0
+                    comment: null
+                    multipart_data: {}
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                - id: '516'
+                  type: answers
+                  attributes:
+                    question_id: 1611
+                    value: null
+                    comment: Review title
+                    multipart_data: {}
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                - id: '517'
+                  type: answers
+                  attributes:
+                    question_id: 1612
+                    value: null
+                    comment: I like...
+                    multipart_data: {}
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                - id: '518'
+                  type: answers
+                  attributes:
+                    question_id: 1613
+                    value: null
+                    comment: I dislike...
+                    multipart_data: {}
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                - id: '519'
+                  type: answers
+                  attributes:
+                    question_id: 1614
+                    value: null
+                    comment: I recommend...
+                    multipart_data: {}
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                - id: '520'
+                  type: answers
+                  attributes:
+                    question_id: 1615
+                    value: null
+                    comment: I benefit...
+                    multipart_data: {}
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+    post:
+      summary: Submit or update a review for a product
+      operationId: submitCurrentUserProductReview
+      tags:
+      - Reviews
+      description: "**⚠️ G2 is currently restricting access to this endpoint.**\n This endpoint allows the user to submit or update a review for a specific product.\n The review is based on predefined questions and answers.'\n"
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - openid
+        - profile
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fields[reviews]
+        in: query
+        explode: false
+        description: Comma separated list of fields for reviews to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - questions
+            - published_at
+            - submitted_at
+            - user_updated_at
+            - url
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. user,answers)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - user
+            - answers
+      responses:
+        '201':
+          description: Review successfully submitted
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      questions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            label:
+                              type: string
+                            placeholder:
+                              type:
+                              - string
+                              - 'null'
+                            is_required:
+                              type: boolean
+                            question_type:
+                              type: string
+                            format:
+                              type:
+                              - string
+                              - 'null'
+                            min:
+                              type:
+                              - number
+                              - 'null'
+                            max:
+                              type:
+                              - number
+                              - 'null'
+                            choices:
+                              type:
+                              - array
+                              - 'null'
+                              items:
+                                type: object
+                                properties:
+                                  key:
+                                    type: string
+                                  value:
+                                    type: string
+                      url:
+                        type:
+                        - string
+                        - 'null'
+                      submitted_at:
+                        type: string
+                      published_at:
+                        type: string
+                      user_updated_at:
+                        type: string
+                  included:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        attributes:
+                          type: object
+        '400':
+          description: Invalid review submission
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Not Authorized
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+      requestBody:
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                terms_accepted:
+                  type: boolean
+                  default: true
+                privacy_policy_accepted:
+                  type: boolean
+                  default: true
+                answers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      question_id:
+                        type: string
+                      value:
+                        description: Answer value matching the format of the question
+                        oneOf:
+                        - type: string
+                        - type: number
+                        - type: array
+                          items:
+                            type: string
+                    required:
+                    - question_id
+                    - value
+                landing_page_id:
+                  type: string
+                source_type:
+                  type: string
+                utm_param_id:
+                  type: string
+              required:
+              - answers
+        required: true
+        description: Review answers payload
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

@@ -1,0 +1,149 @@
+openapi: 3.2.0
+info:
+  title: G2 Users API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Users
+paths:
+  /api/v2/user:
+    get:
+      summary: Show current user
+      operationId: getCurrentUser
+      tags:
+      - Users
+      description: Returns the currently authenticated user.
+      security:
+      - G2OAuth:
+        - openid
+        - profile
+      parameters:
+      - name: fields[users]
+        in: query
+        explode: false
+        description: Comma separated list of fields for users to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - id
+            - email
+            - image_url
+      responses:
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Current user details
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: aaaaaaaa-bbbb-4ccc-8ddd-000000000003
+                  type: users
+                  attributes:
+                    email: buford@adams.info
+                    image_url: null
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: User UUID
+                            example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                          email:
+                            type: string
+                            description: User email address
+                            example: user@example.com
+                          image_url:
+                            type:
+                            - string
+                            - 'null'
+                            description: User profile image URL
+                            format: uri
+                      relationships:
+                        type: object
+                  included:
+                    $ref: '#/components/schemas/included'
+components:
+  schemas:
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

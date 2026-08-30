@@ -1,0 +1,428 @@
+openapi: 3.2.0
+info:
+  title: G2 Competitors API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Competitors
+paths:
+  /api/v2/products/{product_id}/competitors:
+    get:
+      summary: Lists competitors related to given product
+      operationId: getProductCompetitors
+      tags:
+      - Competitors
+      description: '**No scope required.**
+
+
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: product_id
+        in: path
+        description: Product UUID or Slug
+        required: true
+        schema:
+          type: string
+      - name: per
+        in: query
+        deprecated: true
+        description: Deprecated alias for page[size] (max 50). page[size] takes precedence.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      - name: filter[category_uuid_eq]
+        description: Filter competitors by category UUID
+        in: query
+        schema:
+          type: string
+      - name: fields[products]
+        in: query
+        explode: false
+        description: Comma separated list of fields for products to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - type
+            - detail_description
+            - domain
+            - g2_url
+            - name
+            - public_detail_url
+            - review_count
+            - slug
+            - write_review_url
+            - image_url
+            - pricing_tiers
+            - star_rating
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. categories)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - categories
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+              examples:
+                when user does not have access to the product:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: You do not have access to that resource
+                when user has product access but lacks the required license:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                      links:
+                        type:
+                        - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+              example:
+                errors:
+                - status: '403'
+                  title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                  links:
+                    type:
+                    - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+        '200':
+          description: With all fields included
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: 2274f156-9a91-4d8a-857f-000000000004
+                  type: products
+                  attributes:
+                    type: Software
+                    detail_description: Competitor Description
+                    domain: competitor3.com
+                    g2_url: http://www.lvh.me:63479/products/competitor-product-3/reviews
+                    name: Competitor Product 3
+                    public_detail_url: https://www.competitor3.com
+                    review_count: 0
+                    slug: competitor-product-3
+                    write_review_url: http://www.lvh.me:63479/products/competitor-product-3/take_survey
+                    image_url: null
+                    pricing_tiers: []
+                    star_rating: 2.5
+                  relationships:
+                    categories:
+                      data:
+                      - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000090
+                        type: product_categories
+                    discussions:
+                      data: []
+                      links:
+                        related: http://data.lvh.me:63479/api/v2/products/2274f156-9a91-4d8a-857f-000000000004/discussions
+                    screenshots:
+                      data: []
+                    vendor:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000085
+                        type: vendors
+                - id: 2274f156-9a91-4d8a-857f-000000000003
+                  type: products
+                  attributes:
+                    type: Software
+                    detail_description: Competitor Description
+                    domain: competitor2.com
+                    g2_url: http://www.lvh.me:63479/products/competitor-product-2/reviews
+                    name: Competitor Product 2
+                    public_detail_url: https://www.competitor2.com
+                    review_count: 0
+                    slug: competitor-product-2
+                    write_review_url: http://www.lvh.me:63479/products/competitor-product-2/take_survey
+                    image_url: null
+                    pricing_tiers: []
+                    star_rating: 2.5
+                  relationships:
+                    categories:
+                      data:
+                      - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000047
+                        type: product_categories
+                    discussions:
+                      data: []
+                      links:
+                        related: http://data.lvh.me:63479/api/v2/products/2274f156-9a91-4d8a-857f-000000000003/discussions
+                    screenshots:
+                      data: []
+                    vendor:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000043
+                        type: vendors
+                - id: 2274f156-9a91-4d8a-857f-000000000002
+                  type: products
+                  attributes:
+                    type: Software
+                    detail_description: Competitor Description
+                    domain: competitor1.com
+                    g2_url: http://www.lvh.me:63479/products/competitor-product-1/reviews
+                    name: Competitor Product 1
+                    public_detail_url: https://www.competitor1.com
+                    review_count: 0
+                    slug: competitor-product-1
+                    write_review_url: http://www.lvh.me:63479/products/competitor-product-1/take_survey
+                    image_url: null
+                    pricing_tiers: []
+                    star_rating: 2.5
+                  relationships:
+                    categories:
+                      data:
+                      - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000006
+                        type: product_categories
+                    discussions:
+                      data: []
+                      links:
+                        related: http://data.lvh.me:63479/api/v2/products/2274f156-9a91-4d8a-857f-000000000002/discussions
+                    screenshots:
+                      data: []
+                    vendor:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000001
+                        type: vendors
+                included:
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000090
+                  type: product_categories
+                  attributes:
+                    name: test
+                    slug: test-aaaaaaaa-bbbb-4ccc-8ddd-000000000091
+                    description: test
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000047
+                  type: product_categories
+                  attributes:
+                    name: test
+                    slug: test-aaaaaaaa-bbbb-4ccc-8ddd-000000000048
+                    description: test
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000006
+                  type: product_categories
+                  attributes:
+                    name: test
+                    slug: test
+                    description: test
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                links:
+                  self: http://data.example.com/api/v2/products/2274f156-9a91-4d8a-857f-000000000001/competitors?per=10&filter%5Bcategory_uuid_eq%5D=&fields%5Bproducts%5D=type,detail_description,domain,g2_url,name,public_detail_url,review_count,slug,write_review_url,image_url,pricing_tiers,star_rating&include=categories
+                  next: null
+                  prev: null
+                meta:
+                  record_count: 3
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              description: Type of product (e.g., "Software", "Hardware")
+                            detail_description:
+                              type: string
+                              description: Detailed description of the product
+                            domain:
+                              type: string
+                              description: Primary domain of the product website
+                              example: salesforce.com
+                            g2_url:
+                              type: string
+                              description: Full URL to the product page on G2
+                              example: https://www.g2.com/products/salesforce-sales-cloud/reviews
+                              format: uri
+                            name:
+                              type: string
+                              description: Name of the product
+                              example: Salesforce Sales Cloud
+                            public_detail_url:
+                              type: string
+                              description: Vendor website URL for the product
+                              example: https://www.salesforce.com
+                              format: uri
+                            review_count:
+                              type: integer
+                              description: Total number of reviews for the product
+                              example: 15234
+                            slug:
+                              type: string
+                              description: URL-friendly identifier for the product
+                              example: salesforce-sales-cloud
+                            write_review_url:
+                              type: string
+                              description: URL to write a review for this product on G2
+                              format: uri
+                            image_url:
+                              type:
+                              - string
+                              - 'null'
+                              description: URL to the product logo or favicon
+                              format: uri
+                            pricing_tiers:
+                              type: array
+                              items:
+                                type: string
+                                x-nullable: false
+                              description: List of pricing tiers with prices
+                              example:
+                              - Free
+                              - Pro ($7.25 per user Per Month)
+                              - Enterprise (Contact Us)
+                            star_rating:
+                              type:
+                              - number
+                              - 'null'
+                              description: Average star rating (1-5 scale)
+                              example: 4.3
+                        relationships:
+                          type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

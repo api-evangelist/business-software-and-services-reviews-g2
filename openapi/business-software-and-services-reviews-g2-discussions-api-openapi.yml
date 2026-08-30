@@ -1,0 +1,359 @@
+openapi: 3.2.0
+info:
+  title: G2 Discussions API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Discussions
+paths:
+  /api/v2/products/{product_id}/discussions:
+    get:
+      summary: Lists discussions related to given product
+      operationId: getProductDiscussions
+      tags:
+      - Discussions
+      description: '**Requires `products.discussions.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: product_id
+        in: path
+        description: Product UUID or Slug
+        required: true
+        schema:
+          type: string
+      - name: fields[discussions]
+        in: query
+        explode: false
+        description: Comma separated list of fields for discussions to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - attribution
+            - comments_count
+            - comments_present
+            - content
+            - created_at
+            - is_public
+            - official_response_present
+            - product_id
+            - product_name
+            - report_url
+            - seeded
+            - slug
+            - title
+            - type
+            - url
+            - vendor_question
+            - verified_current_user
+            - votes_down
+            - votes_up
+            - votes_total
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. user,comments)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - user
+            - comments
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+              examples:
+                when user does not have access to the product:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: You do not have access to that resource
+                when user has product access but lacks the required license:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                      links:
+                        type:
+                        - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+              example:
+                errors:
+                - status: '403'
+                  title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                  links:
+                    type:
+                    - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+        '404':
+          description: With invalid id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: With all fields included
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: e8fdabd8-2397-4ce5-8161-000000000002
+                  type: discussions
+                  attributes:
+                    attribution:
+                      text: Verified by G2
+                      url: http://www.lvh.me:63479/products/product-one/reviews
+                      logo: http://www.lvh.me:63479/assets/g2-logo-rorange.svg
+                    comments_count: 0
+                    comments_present: false
+                    content: Some discussion stuff...
+                    created_at: '2021-12-01T00:00:00.000-06:00'
+                    is_public: true
+                    official_response_present: false
+                    product_id: e8fdabd8-2397-4ce5-8161-000000000001
+                    product_name: Product One
+                    report_url: http://www.lvh.me:63479/discussions/a-discussion/concerns/new
+                    seeded: false
+                    slug: a-discussion
+                    title: A Discussion
+                    type: product_question
+                    url: http://www.lvh.me:63479/discussions/a-discussion
+                    vendor_question: false
+                    verified_current_user: true
+                    votes_down: 0
+                    votes_up: 1
+                    votes_total: 1
+                  relationships:
+                    user:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000040
+                        type: users
+                    comments:
+                      data: []
+                included:
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000040
+                  type: users
+                  attributes:
+                    industry: Internet
+                    name: alex smith
+                    first_name: alex
+                    last_name: smith
+                    image: null
+                    company: ACME
+                    title: null
+                    company_segment: ' '
+                links:
+                  self: http://data.example.com/api/v2/products/e8fdabd8-2397-4ce5-8161-000000000001/discussions?fields%5Bdiscussions%5D=attribution,comments_count,comments_present,content,created_at,is_public,official_response_present,product_id,product_name,report_url,seeded,slug,title,type,url,vendor_question,verified_current_user,votes_down,votes_up,votes_total&include=user,comments
+                  next: null
+                  prev: null
+                meta:
+                  record_count: 1
+                  products:
+                  - name: Product One
+                    domain: example.com
+                    slug: product-one
+                    product_type: Software
+                    star_rating: 2.5
+                    avg_rating: '5.0'
+                    detail_description: Description
+                    review_count: 0
+                    image_url: null
+                    public_detail_url: null
+                    g2crowd_url: http://www.lvh.me:63479/products/product-one/reviews
+                    write_review_url: http://www.lvh.me:63479/products/product-one/take_survey
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            attribution:
+                              type: object
+                            comments_count:
+                              type: integer
+                            comments_present:
+                              type: boolean
+                            content:
+                              type: string
+                            created_at:
+                              type: string
+                            is_public:
+                              type: boolean
+                            official_response_present:
+                              type: boolean
+                            product_id:
+                              type: string
+                            product_name:
+                              type: string
+                            report_url:
+                              type: string
+                            seeded:
+                              type: boolean
+                            slug:
+                              type: string
+                            title:
+                              type: string
+                            type:
+                              type: string
+                              enum:
+                              - product_question
+                              - category_question
+                            vendor_question:
+                              type: boolean
+                            verified_current_user:
+                              type: boolean
+                            votes_down:
+                              type: integer
+                            votes_total:
+                              type: integer
+                            votes_up:
+                              type: integer
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

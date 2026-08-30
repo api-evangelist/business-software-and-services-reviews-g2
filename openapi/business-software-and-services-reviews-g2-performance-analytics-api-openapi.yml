@@ -1,0 +1,893 @@
+openapi: 3.2.0
+info:
+  title: G2 Performance Analytics API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Performance Analytics
+paths:
+  /api/v2/products/{product_id}/performance_analytics/integrations/{integration_type}/data_quality:
+    get:
+      summary: Show CRM data quality
+      operationId: getPerformanceAnalyticsDataQuality
+      tags:
+      - Performance Analytics
+      description: '**Requires `performance_analytics.read` scope.**
+
+
+        Report data-quality counts (missing currency, hidden outliers, duplicates) for one CRM integration.
+
+        '
+      security:
+      - G2OAuth:
+        - performance_analytics.read
+      parameters:
+      - name: product_id
+        in: path
+        description: The UUID or slug of the product
+        required: true
+        schema:
+          type: string
+      - name: integration_type
+        in: path
+        schema:
+          type: string
+          enum:
+          - hubspot
+          - salesforce
+        description: The CRM provider
+        required: true
+      responses:
+        '200':
+          description: Data quality
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: f8769005-4794-4db3-8592-000000000001-hubspot
+                  type: performance_analytics_integration_data_quality
+                  attributes:
+                    provider: hubspot
+                    active_authenticated: false
+                    missing_currency_count: 2
+                    outliers_hidden_count: 1
+                    duplicate_deals_count: 1
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          provider:
+                            type: string
+                            description: The CRM provider this data-quality block describes
+                            example: hubspot
+                          active_authenticated:
+                            type: boolean
+                            description: Whether the integration is currently live and authenticated. When false, the counts describe stale synced rows from a disconnected integration
+                            example: true
+                          missing_currency_count:
+                            type: integer
+                            description: Synced deal rows with no currency on the CRM payload, so their amount could not be reliably converted to USD
+                            example: 12
+                          outliers_hidden_count:
+                            type: integer
+                            description: Deal rows auto-archived as outliers (excluded from ROI math) that the vendor has not confirmed or restored
+                            example: 3
+                          duplicate_deals_count:
+                            type: integer
+                            description: Active synced rows beyond distinct CRM deal ids — the surplus from the same deal syncing more than once. > 0 means the ROI totals may be inflated
+                            example: 11217
+                      relationships:
+                        type: object
+                  included:
+                    $ref: '#/components/schemas/included'
+        '400':
+          description: When the provider is unsupported
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'integration_type: is not a supported provider'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Missing performance_analytics.read scope
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '403'
+                  title: You do not have access to that resource
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: With invalid product id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+  /api/v2/products/{product_id}/performance_analytics/integrations/{integration_type}/roi_summary:
+    get:
+      summary: Show ROI summary
+      operationId: getPerformanceAnalyticsRoiSummary
+      tags:
+      - Performance Analytics
+      description: '**Requires `performance_analytics.read` scope.**
+
+
+        Summarize G2-influenced ROI tiles for one CRM integration over a date window.
+
+        '
+      security:
+      - G2OAuth:
+        - performance_analytics.read
+      parameters:
+      - name: product_id
+        in: path
+        description: The UUID or slug of the product
+        required: true
+        schema:
+          type: string
+      - name: integration_type
+        in: path
+        schema:
+          type: string
+          enum:
+          - hubspot
+          - salesforce
+        description: The CRM provider
+        required: true
+      - name: date_from
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Window start (ISO8601 date); defaults to a trailing 12 months
+      - name: date_to
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Window end (ISO8601 date); defaults to today
+      responses:
+        '200':
+          description: ROI summary
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: 4e5f1e9c-4597-4e3b-8a72-000000000001-hubspot
+                  type: performance_analytics_roi_summary
+                  attributes:
+                    provider: hubspot
+                    status: connected
+                    date_from: '2021-01-01'
+                    date_to: '2022-01-01'
+                    currency: USD
+                    base:
+                      g2_influenced_pipeline: 400000.0
+                      g2_influenced_closed_won: 100000.0
+                      non_influenced_pipeline: 100000.0
+                      deals_total_count: 20
+                      deals_influenced_count: 4
+                      deals_influenced_closed_won_count: 3
+                      deals_non_influenced_count: 16
+                      avg_deal_size: 100000.0
+                      influenced_close_rate: 0.25
+                      influenced_sales_cycle_length: 94
+                      attribution_rate: 80.0
+                      uplift_pct: 100.0
+                    high_intent:
+                      status: not_available
+                      high_intent_pipeline: null
+                      high_intent_closed_won: null
+                      deals_high_intent_count: null
+                      deals_high_intent_closed_won_count: null
+                      non_influenced_closed_won: null
+                    created:
+                      status: available
+                      g2_created_pipeline: 55000.0
+                      deals_created_count: 2
+                      deals_created_closed_won_count: 1
+                    attribution_window:
+                      influence_analyzer_days: 180
+                      deal_calculation_days: 90
+                    last_synced_at: null
+                    connect_url: null
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          provider:
+                            type: string
+                            description: The CRM provider this ROI summary describes
+                            example: hubspot
+                          status:
+                            type: string
+                            description: connected (real data) or not_connected (provider not active+authenticated; the metric groups are null — never sample data)
+                            example: connected
+                          date_from:
+                            type: string
+                            description: Resolved window start (ISO8601 date)
+                            example: '2025-07-08'
+                            format: date
+                          date_to:
+                            type: string
+                            description: Resolved window end (ISO8601 date)
+                            example: '2026-07-08'
+                            format: date
+                          currency:
+                            type: string
+                            description: Currency of all money tiles (pinned; the data layer stores amount_in_usd)
+                            example: USD
+                          base:
+                            type:
+                            - object
+                            - 'null'
+                            description: 'Always-present tiles: influenced/non-influenced pipeline & counts plus derived ratios. Null only when status is not_connected.'
+                            example:
+                              g2_influenced_pipeline: 405000.0
+                              g2_influenced_closed_won: 98000.0
+                              non_influenced_pipeline: 500500.0
+                              deals_total_count: 10739
+                              deals_influenced_count: 42
+                              deals_influenced_closed_won_count: 346
+                              deals_non_influenced_count: 7982
+                              avg_deal_size: 9642.85
+                              influenced_close_rate: 0.17
+                              influenced_sales_cycle_length: 94
+                              attribution_rate: 44.73
+                              uplift_pct: 34.85
+                            properties: {}
+                          high_intent:
+                            type:
+                            - object
+                            - 'null'
+                            description: 'Directly-influenced (High-Intent) tiles with a status: available on the preview/Salesforce path, not_available where the read path omits them (never a Buyer Intent upsell). Tiles are null when not available.'
+                            example:
+                              status: available
+                              high_intent_pipeline: 120000.0
+                              high_intent_closed_won: 185000.0
+                              deals_high_intent_count: 2524
+                              deals_high_intent_closed_won_count: 313
+                              non_influenced_closed_won: 210000.0
+                            properties: {}
+                          created:
+                            type:
+                            - object
+                            - 'null'
+                            description: 'G2-created/sourced tiles with a status: available (Buyer Intent + HubSpot), requires_upgrade (non-BI vendor — carries an {message, upgrade_url} prompt), or not_available (Salesforce has no sourced concept). Tiles null unless available.'
+                            example:
+                              status: requires_upgrade
+                              g2_created_pipeline: null
+                              deals_created_count: null
+                              deals_created_closed_won_count: null
+                              upgrade:
+                                message: Upgrade to G2 Buyer Intent…
+                                upgrade_url: https://…
+                            properties: {}
+                          attribution_window:
+                            type:
+                            - object
+                            - 'null'
+                            description: 'Per-engine attribution windows in days (HubSpot runs two engines: 180-day InfluenceAnalyzer and 90-day DealCalculation; Salesforce: 180 only)'
+                            example:
+                              influence_analyzer_days: 180
+                              deal_calculation_days: 90
+                            properties: {}
+                          last_synced_at:
+                            type:
+                            - string
+                            - 'null'
+                            description: ISO8601 timestamp of the last successful sync, or null if never synced
+                            example: '2026-07-05T01:57:47-05:00'
+                            format: date-time
+                          connect_url:
+                            type:
+                            - string
+                            - 'null'
+                            description: Link into the connection flow (present when status is not_connected)
+                            example: https://my.g2.com/example-product/integrations
+                      relationships:
+                        type: object
+                  included:
+                    $ref: '#/components/schemas/included'
+        '400':
+          description: When date_from is after date_to
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'date_from: must be before or equal to date_to'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Missing performance_analytics.read scope
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '403'
+                  title: You do not have access to that resource
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: With invalid product id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+  /api/v2/products/{product_id}/performance_analytics/integrations/{integration_type}/roi_trend:
+    get:
+      summary: Show ROI trend
+      operationId: getPerformanceAnalyticsRoiTrend
+      tags:
+      - Performance Analytics
+      description: '**Requires `performance_analytics.read` scope.**
+
+
+        Return a time series of one ROI metric bucketed by month or quarter.
+
+        '
+      security:
+      - G2OAuth:
+        - performance_analytics.read
+      parameters:
+      - name: product_id
+        in: path
+        description: The UUID or slug of the product
+        required: true
+        schema:
+          type: string
+      - name: integration_type
+        in: path
+        schema:
+          type: string
+          enum:
+          - hubspot
+          - salesforce
+        description: The CRM provider
+        required: true
+      - name: metric
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - g2_influenced_pipeline
+          - high_intent_pipeline
+          - g2_influenced_closed_won
+          - deals_influenced_count
+          - non_influenced_pipeline
+        description: The trended ROI tile (raw tiles only; derived ratios are summary-only)
+      - name: interval
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - month
+          - quarter
+        description: Bucket size (defaults to month)
+      - name: lookback
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Number of buckets to return (defaults to 12, capped at 36)
+      - name: date_to
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Anchor end date for the series (defaults to today)
+      responses:
+        '200':
+          description: ROI trend
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: c4101714-8eb1-4066-893e-000000000001-hubspot
+                  type: performance_analytics_roi_trend
+                  attributes:
+                    provider: hubspot
+                    status: connected
+                    metric: g2_influenced_pipeline
+                    interval: month
+                    currency: USD
+                    series:
+                    - period: 2021-02
+                      value: 400000.0
+                    - period: 2021-03
+                      value: 400000.0
+                    - period: 2021-04
+                      value: 400000.0
+                    - period: 2021-05
+                      value: 400000.0
+                    - period: 2021-06
+                      value: 400000.0
+                    - period: 2021-07
+                      value: 400000.0
+                    - period: 2021-08
+                      value: 400000.0
+                    - period: 2021-09
+                      value: 400000.0
+                    - period: 2021-10
+                      value: 400000.0
+                    - period: 2021-11
+                      value: 400000.0
+                    - period: 2021-12
+                      value: 400000.0
+                    - period: 2022-01
+                      value: 400000.0
+                    attribution_window:
+                      influence_analyzer_days: 180
+                      deal_calculation_days: 90
+                    last_synced_at: null
+                    connect_url: null
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          provider:
+                            type: string
+                            description: The CRM provider this trend describes
+                            example: salesforce
+                          status:
+                            type: string
+                            description: connected (real data) or not_connected (provider not active+authenticated; series is empty — never sample data)
+                            example: connected
+                          metric:
+                            type: string
+                            description: The trended tile (raw tiles only; derived ratios are summary-only)
+                            example: g2_influenced_pipeline
+                          interval:
+                            type: string
+                            description: 'Bucket size: month or quarter'
+                            example: month
+                          currency:
+                            type: string
+                            description: Currency of money metrics (pinned; the data layer stores amount_in_usd)
+                            example: USD
+                          series:
+                            type: array
+                            items:
+                              type: object
+                            description: Oldest-first [{period, value}] buckets; value is null where the metric is unavailable for the read path. Each bucket reconciles to the summary over the same window by construction.
+                            example:
+                            - period: 2026-06
+                              value: 405000.0
+                          attribution_window:
+                            type:
+                            - object
+                            - 'null'
+                            description: 'Per-engine attribution windows in days (HubSpot: 180 + 90; Salesforce: 180)'
+                            example:
+                              influence_analyzer_days: 180
+                            properties: {}
+                          last_synced_at:
+                            type:
+                            - string
+                            - 'null'
+                            description: ISO8601 timestamp of the last successful sync, or null if never synced
+                            example: '2026-06-28T01:26:01-05:00'
+                            format: date-time
+                          connect_url:
+                            type:
+                            - string
+                            - 'null'
+                            description: Link into the connection flow (present when status is not_connected)
+                            example: https://my.g2.com/example-product/integrations
+                      relationships:
+                        type: object
+                  included:
+                    $ref: '#/components/schemas/included'
+        '400':
+          description: When the metric is not trendable
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'metric: must be one of: g2_influenced_pipeline, high_intent_pipeline, g2_influenced_closed_won, deals_influenced_count, non_influenced_pipeline'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Missing performance_analytics.read scope
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '403'
+                  title: You do not have access to that resource
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: With invalid product id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+  /api/v2/products/{product_id}/performance_analytics/integrations/{integration_type}:
+    get:
+      summary: Show CRM integration health
+      operationId: getPerformanceAnalyticsIntegrationHealth
+      tags:
+      - Performance Analytics
+      description: '**Requires `performance_analytics.read` scope.**
+
+
+        Report connection health and synced-deal volume for one CRM integration.
+
+        '
+      security:
+      - G2OAuth:
+        - performance_analytics.read
+      parameters:
+      - name: product_id
+        in: path
+        description: The UUID or slug of the product
+        required: true
+        schema:
+          type: string
+      - name: integration_type
+        in: path
+        schema:
+          type: string
+          enum:
+          - hubspot
+          - salesforce
+        description: The CRM provider
+        required: true
+      responses:
+        '200':
+          description: Integration health
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: b1150f4f-6611-4a02-8582-000000000001-hubspot
+                  type: performance_analytics_integration_health
+                  attributes:
+                    provider: hubspot
+                    active_authenticated: false
+                    last_synced_at: '2022-01-01T00:00:00.000-06:00'
+                    sync_cadence: weekly
+                    deals_synced_count: 2
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          provider:
+                            type: string
+                            description: The CRM provider this health block describes
+                            example: hubspot
+                          active_authenticated:
+                            type: boolean
+                            description: Whether the integration is live and authenticated (real data flows)
+                            example: true
+                          last_synced_at:
+                            type:
+                            - string
+                            - 'null'
+                            description: ISO8601 timestamp of the last successful sync, or null if never synced
+                            example: '2026-07-05T01:57:47-05:00'
+                            format: date-time
+                          sync_cadence:
+                            type: string
+                            description: Configured sync frequency
+                            example: weekly
+                          deals_synced_count:
+                            type: integer
+                            description: Count of synced deals (deduped by resource_id, archived excluded)
+                            example: 128
+                      relationships:
+                        type: object
+                  included:
+                    $ref: '#/components/schemas/included'
+        '400':
+          description: When the provider is unsupported
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'integration_type: is not a supported provider'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Missing performance_analytics.read scope
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '403'
+                  title: You do not have access to that resource
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: With invalid product id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+  /api/v2/products/{product_id}/performance_analytics:
+    get:
+      summary: Show Performance Analytics activation status
+      operationId: getPerformanceAnalyticsActivationStatus
+      tags:
+      - Performance Analytics
+      description: '**Requires `performance_analytics.read` scope.**
+
+
+        Report whether a supported CRM is connected for a PA-licensed product.
+
+        '
+      security:
+      - G2OAuth:
+        - performance_analytics.read
+      parameters:
+      - name: product_id
+        in: path
+        description: The UUID or slug of the product
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Activation status
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  id: d797efd1-b921-4831-8686-000000000001
+                  type: performance_analytics_activation_status
+                  attributes:
+                    status: connected
+                    connected_providers:
+                    - hubspot
+                    subscription_tier: null
+                    connect_url: http://my.lvh.me:63479/test-product-188/integrations
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum:
+                            - connected
+                            - not_connected
+                            description: 'CRM connection state for the (PA-licensed) product: connected / not_connected'
+                            example: connected
+                          connected_providers:
+                            type: array
+                            items:
+                              type: string
+                              x-nullable: false
+                            description: Live, supported CRM providers (subset of hubspot, salesforce)
+                            example:
+                            - hubspot
+                          subscription_tier:
+                            type:
+                            - string
+                            - 'null'
+                            description: Vendor plan tier, or null for a free/base product
+                            example: enterprise
+                          connect_url:
+                            type:
+                            - string
+                            - 'null'
+                            description: myG2 URL to connect/manage a CRM integration
+                            example: https://my.g2.com/acme-crm/integrations
+                      relationships:
+                        type: object
+                  included:
+                    $ref: '#/components/schemas/included'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Missing performance_analytics.read scope
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '403'
+                  title: You do not have access to that resource
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: With invalid product id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+components:
+  schemas:
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

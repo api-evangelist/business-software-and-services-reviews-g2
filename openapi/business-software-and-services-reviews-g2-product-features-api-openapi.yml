@@ -1,0 +1,1099 @@
+openapi: 3.2.0
+info:
+  title: G2 Product Features API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Product Features
+paths:
+  /api/v2/categories/{category_id}/features:
+    get:
+      summary: List features for a specific category
+      operationId: getCategoryFeatures
+      tags:
+      - Product Features
+      description: '**Requires `product_features.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: category_id
+        in: path
+        required: true
+        description: Category UUID or Slug
+        schema:
+          type: string
+      - name: filter[product_uuid_eq]
+        description: G2 product ID
+        default: null
+        in: query
+        schema:
+          type: string
+      - name: filter[is_verified_eq]
+        schema:
+          type: boolean
+        in: query
+      - name: filter[functionality_eq]
+        description: Filter by functionality
+        in: query
+        schema:
+          type: string
+      - name: filter[created_at_gt]
+        schema:
+          type: string
+          format: date-time
+        description: Min created_at value (RFC3339 format)
+        in: query
+      - name: filter[created_at_lt]
+        schema:
+          type: string
+          format: date-time
+        description: Max created_at value (RFC3339 format)
+        in: query
+      - name: filter[updated_at_gt]
+        schema:
+          type: string
+          format: date-time
+        description: Min updated_at value (RFC3339 format)
+        in: query
+      - name: filter[updated_at_lt]
+        schema:
+          type: string
+          format: date-time
+        description: Max updated_at value (RFC3339 format)
+        in: query
+      - name: fields[product_features]
+        in: query
+        explode: false
+        description: Comma separated list of fields for product_features to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - section_title
+            - feature_id
+            - feature
+            - description
+            - review_count
+            - rating
+            - functionality
+            - is_verified
+            - available
+            - created_at
+            - updated_at
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. product)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - product
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: With invalid id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: List of category product features
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  objects:
+                  - id: ded54ee0-9577-4623-84ec-000000000001
+                    name: test
+                    product_features:
+                    - section_title: test section
+                      feature_id: 937
+                      feature: Grouped Feature
+                      description: null
+                      review_count: null
+                      rating: null
+                      functionality: native
+                      is_verified: true
+                      available: true
+                      created_at: '2022-01-01T00:00:00.000-06:00'
+                      updated_at: '2022-01-01T00:00:00.000-06:00'
+                      product:
+                        id: ded54ee0-9577-4623-84ec-000000000002
+                        name: test product 63
+                        slug: test-product-63
+                    - section_title: test section
+                      feature_id: 936
+                      feature: Category Feature
+                      description: null
+                      review_count: null
+                      rating: null
+                      functionality: native
+                      is_verified: true
+                      available: true
+                      created_at: '2022-01-01T00:00:00.000-06:00'
+                      updated_at: '2022-01-01T00:00:00.000-06:00'
+                      product:
+                        id: ded54ee0-9577-4623-84ec-000000000002
+                        name: test product 63
+                        slug: test-product-63
+                    meta_aggs:
+                      feature_count_per_group: 2
+                      avg_rating: null
+                      review_count: null
+                links:
+                  self: http://data.example.com/api/v2/categories/ded54ee0-9577-4623-84ec-000000000001/features?filter%5Bproduct_uuid_eq%5D=&filter%5Bis_verified_eq%5D=true&filter%5Bfunctionality_eq%5D=native&filter%5Bcreated_at_gt%5D=2021-01-01T00%3A00%3A00Z&filter%5Bcreated_at_lt%5D=2023-01-01T00%3A00%3A00Z&filter%5Bupdated_at_gt%5D=2021-01-01T00%3A00%3A00Z&filter%5Bupdated_at_lt%5D=2023-01-01T00%3A00%3A00Z&fields%5Bproduct_features%5D=section_title,feature_id,feature,description,review_count,rating,functionality,is_verified,available,created_at,updated_at&include=product
+                  next: null
+                  prev: null
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      objects:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            product_features:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  section_title:
+                                    type:
+                                    - string
+                                    - 'null'
+                                  feature_id:
+                                    type: integer
+                                  feature:
+                                    type:
+                                    - string
+                                    - 'null'
+                                  description:
+                                    type:
+                                    - string
+                                    - 'null'
+                                  review_count:
+                                    type:
+                                    - integer
+                                    - 'null'
+                                  rating:
+                                    type:
+                                    - number
+                                    - 'null'
+                                  functionality:
+                                    type: string
+                                  is_verified:
+                                    type: boolean
+                                  available:
+                                    type: boolean
+                                  created_at:
+                                    type: string
+                                    format: date-time
+                                  updated_at:
+                                    type: string
+                                    format: date-time
+                            meta_aggs:
+                              type: object
+                              properties:
+                                feature_count_per_group:
+                                  type: integer
+                                avg_rating:
+                                  type:
+                                  - number
+                                  - 'null'
+                                review_count:
+                                  type:
+                                  - integer
+                                  - 'null'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                      next:
+                        type:
+                        - string
+                        - 'null'
+                      prev:
+                        type:
+                        - string
+                        - 'null'
+  /api/v2/categories/features:
+    get:
+      summary: List all category product features grouped by category
+      operationId: getAllCategoryFeatures
+      tags:
+      - Product Features
+      description: '**Requires `product_features.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: filter[product_uuid_eq]
+        description: Filter by G2 product ID
+        default: null
+        in: query
+        schema:
+          type: string
+      - name: filter[is_verified_eq]
+        schema:
+          type: boolean
+        in: query
+      - name: filter[functionality_eq]
+        description: Filter by functionality
+        in: query
+        schema:
+          type: string
+      - name: filter[created_at_gt]
+        schema:
+          type: string
+          format: date-time
+        description: Min created_at value (RFC3339 format)
+        in: query
+      - name: filter[created_at_lt]
+        schema:
+          type: string
+          format: date-time
+        description: Max created_at value (RFC3339 format)
+        in: query
+      - name: filter[updated_at_gt]
+        schema:
+          type: string
+          format: date-time
+        description: Min updated_at value (RFC3339 format)
+        in: query
+      - name: filter[updated_at_lt]
+        schema:
+          type: string
+          format: date-time
+        description: Max updated_at value (RFC3339 format)
+        in: query
+      - name: fields[product_features]
+        in: query
+        explode: false
+        description: Comma separated list of fields for product_features to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - section_title
+            - feature_id
+            - feature
+            - description
+            - review_count
+            - rating
+            - functionality
+            - is_verified
+            - available
+            - created_at
+            - updated_at
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. product)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - product
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Grouped category product features
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  objects:
+                  - id: ded54ee0-9577-4623-84ec-000000000001
+                    name: test
+                    product_features:
+                    - section_title: test section
+                      feature_id: 1057
+                      feature: Grouped Feature
+                      description: null
+                      review_count: null
+                      rating: null
+                      functionality: native
+                      is_verified: true
+                      available: true
+                      created_at: '2022-01-01T00:00:00.000-06:00'
+                      updated_at: '2022-01-01T00:00:00.000-06:00'
+                      product:
+                        id: ded54ee0-9577-4623-84ec-000000000002
+                        name: test product 73
+                        slug: test-product-73
+                    - section_title: test section
+                      feature_id: 1056
+                      feature: Category Feature
+                      description: null
+                      review_count: null
+                      rating: null
+                      functionality: native
+                      is_verified: true
+                      available: true
+                      created_at: '2022-01-01T00:00:00.000-06:00'
+                      updated_at: '2022-01-01T00:00:00.000-06:00'
+                      product:
+                        id: ded54ee0-9577-4623-84ec-000000000002
+                        name: test product 73
+                        slug: test-product-73
+                    meta_aggs:
+                      feature_count_per_group: 2
+                      avg_rating: null
+                      review_count: null
+                links:
+                  self: http://data.example.com/api/v2/categories/features?filter%5Bproduct_uuid_eq%5D=&filter%5Bis_verified_eq%5D=true&filter%5Bfunctionality_eq%5D=native&filter%5Bcreated_at_gt%5D=2021-01-01T00%3A00%3A00Z&filter%5Bcreated_at_lt%5D=2023-01-01T00%3A00%3A00Z&filter%5Bupdated_at_gt%5D=2021-01-01T00%3A00%3A00Z&filter%5Bupdated_at_lt%5D=2023-01-01T00%3A00%3A00Z&fields%5Bproduct_features%5D=section_title,feature_id,feature,description,review_count,rating,functionality,is_verified,available,created_at,updated_at&include=product
+                  next: null
+                  prev: null
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      objects:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            product_features:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  section_title:
+                                    type:
+                                    - string
+                                    - 'null'
+                                  feature_id:
+                                    type: integer
+                                  feature:
+                                    type:
+                                    - string
+                                    - 'null'
+                                  description:
+                                    type:
+                                    - string
+                                    - 'null'
+                                  review_count:
+                                    type:
+                                    - integer
+                                    - 'null'
+                                  rating:
+                                    type:
+                                    - number
+                                    - 'null'
+                                  functionality:
+                                    type: string
+                                  is_verified:
+                                    type: boolean
+                                  available:
+                                    type: boolean
+                                  created_at:
+                                    type: string
+                                    format: date-time
+                                  updated_at:
+                                    type: string
+                                    format: date-time
+                            meta_aggs:
+                              type: object
+                              properties:
+                                feature_count_per_group:
+                                  type: integer
+                                avg_rating:
+                                  type:
+                                  - number
+                                  - 'null'
+                                review_count:
+                                  type:
+                                  - integer
+                                  - 'null'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                      next:
+                        type:
+                        - string
+                        - 'null'
+                      prev:
+                        type:
+                        - string
+                        - 'null'
+  /api/v2/products/{product_id}/features:
+    get:
+      summary: List features for a specific product
+      operationId: getProductFeatures
+      tags:
+      - Product Features
+      description: '**Requires `product_features.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: product_id
+        in: path
+        description: Product UUID or Slug
+        required: true
+        schema:
+          type: string
+      - name: filter[updated_at_gt]
+        description: Filter records updated after this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[updated_at_lt]
+        description: Filter records updated before this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[created_at_gt]
+        description: Filter records created after this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[created_at_lt]
+        description: Filter records created before this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[category_uuid_eq]
+        description: Filter by category UUID
+        in: query
+        schema:
+          type: string
+      - name: filter[product_uuid_eq]
+        description: Filter by product UUID
+        in: query
+        schema:
+          type: string
+      - name: filter[functionality_eq]
+        description: Filter by feature functionality type
+        in: query
+        schema:
+          type: string
+      - name: filter[is_verified_eq]
+        description: Filter by verification status
+        in: query
+        schema:
+          type: string
+      - name: fields[product_features]
+        in: query
+        explode: false
+        description: Comma separated list of fields for product_features to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - section_title
+            - feature_id
+            - feature
+            - description
+            - review_count
+            - rating
+            - functionality
+            - is_verified
+            - available
+            - created_at
+            - updated_at
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. category)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - category
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: With invalid id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: List of product features with metadata
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  objects:
+                  - id: 675259e2-9da0-4aff-8a61-000000000002
+                    name: test product 214
+                    product_features:
+                    - section_title: test section
+                      feature_id: 1316
+                      feature: Grouped Feature
+                      description: null
+                      review_count: null
+                      rating: null
+                      functionality: native
+                      is_verified: false
+                      available: true
+                      created_at: '2022-01-01T00:00:00.000-06:00'
+                      updated_at: '2022-01-01T00:00:00.000-06:00'
+                      categories:
+                      - id: 675259e2-9da0-4aff-8a61-000000000001
+                        name: test
+                    - section_title: test section
+                      feature_id: 1315
+                      feature: Feature A
+                      description: null
+                      review_count: null
+                      rating: null
+                      functionality: native
+                      is_verified: false
+                      available: true
+                      created_at: '2022-01-01T00:00:00.000-06:00'
+                      updated_at: '2022-01-01T00:00:00.000-06:00'
+                      categories:
+                      - id: 675259e2-9da0-4aff-8a61-000000000001
+                        name: test
+                    meta_aggs:
+                      feature_count_per_group: 2
+                      avg_rating: null
+                      review_count: null
+                links:
+                  self: http://data.example.com/api/v2/products/675259e2-9da0-4aff-8a61-000000000002/features?filter%5Bupdated_at_gt%5D=&filter%5Bupdated_at_lt%5D=&filter%5Bcreated_at_gt%5D=&filter%5Bcreated_at_lt%5D=&filter%5Bcategory_uuid_eq%5D=&filter%5Bproduct_uuid_eq%5D=&filter%5Bfunctionality_eq%5D=&filter%5Bis_verified_eq%5D=&fields%5Bproduct_features%5D=section_title,feature_id,feature,description,review_count,rating,functionality,is_verified,available,created_at,updated_at&include=category
+                  next: null
+                  prev: null
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      objects:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            product_features:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  section_title:
+                                    type:
+                                    - string
+                                    - 'null'
+                                  feature_id:
+                                    type: integer
+                                  feature:
+                                    type:
+                                    - string
+                                    - 'null'
+                                  description:
+                                    type:
+                                    - string
+                                    - 'null'
+                                  review_count:
+                                    type:
+                                    - integer
+                                    - 'null'
+                                  rating:
+                                    type:
+                                    - number
+                                    - 'null'
+                                  functionality:
+                                    type: string
+                                  is_verified:
+                                    type: boolean
+                                  available:
+                                    type: boolean
+                                  created_at:
+                                    type: string
+                                    format: date-time
+                                  updated_at:
+                                    type: string
+                                    format: date-time
+                            meta_aggs:
+                              type: object
+                              properties:
+                                feature_count_per_group:
+                                  type: integer
+                                avg_rating:
+                                  type:
+                                  - number
+                                  - 'null'
+                                review_count:
+                                  type:
+                                  - integer
+                                  - 'null'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                      next:
+                        type:
+                        - string
+                        - 'null'
+                      prev:
+                        type:
+                        - string
+                        - 'null'
+  /api/v2/products/features:
+    get:
+      summary: List all product features grouped by product
+      operationId: getAllProductFeatures
+      tags:
+      - Product Features
+      description: '**Requires `product_features.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: filter[updated_at_gt]
+        description: Filter records updated after this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[updated_at_lt]
+        description: Filter records updated before this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[created_at_gt]
+        description: Filter records created after this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[created_at_lt]
+        description: Filter records created before this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[category_uuid_eq]
+        description: Filter by category UUID
+        in: query
+        schema:
+          type: string
+      - name: filter[product_uuid_eq]
+        description: Filter by product UUID
+        in: query
+        schema:
+          type: string
+      - name: filter[functionality_eq]
+        description: Filter by feature functionality type
+        in: query
+        schema:
+          type: string
+      - name: filter[is_verified_eq]
+        description: Filter by verification status
+        in: query
+        schema:
+          type: string
+      - name: fields[product_features]
+        in: query
+        explode: false
+        description: Comma separated list of fields for product_features to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - section_title
+            - feature_id
+            - feature
+            - description
+            - review_count
+            - rating
+            - functionality
+            - is_verified
+            - available
+            - created_at
+            - updated_at
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. category)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - category
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: List of grouped product features
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                  objects:
+                  - id: 675259e2-9da0-4aff-8a61-000000000002
+                    name: test product 224
+                    product_features:
+                    - section_title: test section
+                      feature_id: 1436
+                      feature: Grouped Feature
+                      description: null
+                      review_count: null
+                      rating: null
+                      functionality: native
+                      is_verified: false
+                      available: true
+                      created_at: '2022-01-01T00:00:00.000-06:00'
+                      updated_at: '2022-01-01T00:00:00.000-06:00'
+                      categories:
+                      - id: 675259e2-9da0-4aff-8a61-000000000001
+                        name: test
+                    - section_title: test section
+                      feature_id: 1435
+                      feature: Feature A
+                      description: null
+                      review_count: null
+                      rating: null
+                      functionality: native
+                      is_verified: false
+                      available: true
+                      created_at: '2022-01-01T00:00:00.000-06:00'
+                      updated_at: '2022-01-01T00:00:00.000-06:00'
+                      categories:
+                      - id: 675259e2-9da0-4aff-8a61-000000000001
+                        name: test
+                    meta_aggs:
+                      feature_count_per_group: 2
+                      avg_rating: null
+                      review_count: null
+                links:
+                  self: http://data.example.com/api/v2/products/features?filter%5Bupdated_at_gt%5D=&filter%5Bupdated_at_lt%5D=&filter%5Bcreated_at_gt%5D=&filter%5Bcreated_at_lt%5D=&filter%5Bcategory_uuid_eq%5D=&filter%5Bproduct_uuid_eq%5D=&filter%5Bfunctionality_eq%5D=&filter%5Bis_verified_eq%5D=&fields%5Bproduct_features%5D=section_title,feature_id,feature,description,review_count,rating,functionality,is_verified,available,created_at,updated_at&include=category
+                  next: null
+                  prev: null
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      objects:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            product_features:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  section_title:
+                                    type:
+                                    - string
+                                    - 'null'
+                                  feature_id:
+                                    type: integer
+                                  feature:
+                                    type:
+                                    - string
+                                    - 'null'
+                                  description:
+                                    type:
+                                    - string
+                                    - 'null'
+                                  review_count:
+                                    type:
+                                    - integer
+                                    - 'null'
+                                  rating:
+                                    type:
+                                    - number
+                                    - 'null'
+                                  functionality:
+                                    type: string
+                                  is_verified:
+                                    type: boolean
+                                  available:
+                                    type: boolean
+                                  created_at:
+                                    type: string
+                                    format: date-time
+                                  updated_at:
+                                    type: string
+                                    format: date-time
+                            meta_aggs:
+                              type: object
+                              properties:
+                                feature_count_per_group:
+                                  type: integer
+                                avg_rating:
+                                  type:
+                                  - number
+                                  - 'null'
+                                review_count:
+                                  type:
+                                  - integer
+                                  - 'null'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                      next:
+                        type:
+                        - string
+                        - 'null'
+                      prev:
+                        type:
+                        - string
+                        - 'null'
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

@@ -1,0 +1,394 @@
+openapi: 3.2.0
+info:
+  title: G2 Snippets API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Snippets
+paths:
+  /api/v2/products/{product_id}/snippets:
+    get:
+      summary: Lists reviews of given product
+      operationId: getProductSnippets
+      tags:
+      - Snippets
+      description: '**Requires `products.snippets.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+        G2OAuth:
+        - snippets
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: product_id
+        in: path
+        description: Product UUID or Slug
+        required: true
+        schema:
+          type: string
+      - name: filter[nps_score]
+        in: query
+        schema:
+          type: string
+      - name: filter[company_segment]
+        in: query
+        schema:
+          type: string
+      - name: filter[industry]
+        in: query
+        schema:
+          type: string
+      - name: filter[category_ids]
+        in: query
+        schema:
+          type: string
+      - name: filter[role]
+        in: query
+        schema:
+          type: string
+      - name: filter[tags]
+        in: query
+        schema:
+          type: string
+      - name: fields[snippets]
+        in: query
+        explode: false
+        description: Comma separated list of fields for snippets to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - content
+            - review_url
+            - stars_image_url
+            - star_rating
+            - submitted_at
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. user,review)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - user
+            - review
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+              examples:
+                when user does not have access to the product:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: You do not have access to that resource
+                when user has product access but lacks the required license:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                      links:
+                        type:
+                        - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+              example:
+                errors:
+                - status: '403'
+                  title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                  links:
+                    type:
+                    - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+        '404':
+          description: With invalid id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: With all fields included
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: 3b5b85f8-dbaa-4d27-88a9-000000000003
+                  type: snippets
+                  attributes:
+                    content: Love it
+                    review_url: http://www.lvh.me:63479/survey_responses/test-product-328-review-218
+                    stars_image_url: http://www.g2.test/assets/rorange-stars/stars-0.svg
+                    star_rating: 0.0
+                    submitted_at: '2022-01-01T00:00:00.000-06:00'
+                  relationships:
+                    user:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000046
+                        type: users
+                    review:
+                      data:
+                        id: 3b5b85f8-dbaa-4d27-88a9-000000000002
+                        type: reviews
+                included:
+                - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000046
+                  type: users
+                  attributes:
+                    industry: Internet
+                    name: alex smith
+                    first_name: alex
+                    last_name: smith
+                    image: null
+                    company: null
+                    title: null
+                    company_segment: ' '
+                - id: 3b5b85f8-dbaa-4d27-88a9-000000000002
+                  type: reviews
+                  attributes:
+                    answers: {}
+                    attribution:
+                      text: Verified by G2
+                      url: http://www.lvh.me:63479/products/test-product-328/reviews/test-product-328-review-218
+                      logo: http://www.lvh.me:63479/assets/g2-logo-rorange.svg
+                    comments_present: false
+                    country_name: null
+                    default_sort: 0.0
+                    is_public: true
+                    official_response_present: false
+                    percent_complete: null
+                    product_name: test product 328
+                    published_at: null
+                    regions: []
+                    review_incentive: false
+                    slug: test-product-328-review-218
+                    source: Organic review. This review was written entirely without invitation or incentive from G2, a seller, or an affiliate.
+                    star_rating: 0.0
+                    submitted_at: '2022-01-01T00:00:00.000-06:00'
+                    title: null
+                    url: http://www.lvh.me:63479/products/test-product-328/reviews/test-product-328-review-218
+                    user_updated_at: '2022-01-01T00:00:00.000-06:00'
+                    verified_current_user: false
+                  relationships:
+                    user:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000020
+                        type: users
+                links:
+                  self: http://data.example.com/api/v2/products/3b5b85f8-dbaa-4d27-88a9-000000000001/snippets?filter%5Bnps_score%5D=&filter%5Bcompany_segment%5D=&filter%5Bindustry%5D=&filter%5Bcategory_ids%5D=&filter%5Brole%5D=&filter%5Btags%5D=&fields%5Bsnippets%5D=content,review_url,stars_image_url,star_rating,submitted_at&include=user,review
+                  next: null
+                  prev: null
+                meta:
+                  aggregates:
+                  - filter_name: nps_score
+                    nested_filter_name: null
+                    collection:
+                    - id: 5
+                      text: 5 star
+                      count: 0
+                      checked: false
+                      nested_boxes: []
+                    - id: 4
+                      text: 4 star
+                      count: 0
+                      checked: false
+                      nested_boxes: []
+                    - id: 3
+                      text: 3 star
+                      count: 0
+                      checked: false
+                      nested_boxes: []
+                    - id: 2
+                      text: 2 star
+                      count: 0
+                      checked: false
+                      nested_boxes: []
+                    - id: 1
+                      text: 1 star
+                      count: 1
+                      checked: false
+                      nested_boxes: []
+                    expanded: true
+                  record_count: 1
+                  products:
+                  - name: test product 328
+                    domain: example.com
+                    slug: test-product-328
+                    product_type: Software
+                    star_rating: 2.5
+                    avg_rating: '5.0'
+                    detail_description: null
+                    review_count: 0
+                    image_url: null
+                    public_detail_url: null
+                    g2crowd_url: http://www.lvh.me:63479/products/test-product-328/reviews
+                    write_review_url: http://www.lvh.me:63479/products/test-product-328/take_survey
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            company_name:
+                              type:
+                              - string
+                              - 'null'
+                            company_segment:
+                              type: string
+                            content:
+                              type: string
+                            industry:
+                              type:
+                              - string
+                              - 'null'
+                            review_url:
+                              type: string
+                            stars_image_url:
+                              type: string
+                            star_rating:
+                              type: number
+                            submitted_at:
+                              type: string
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

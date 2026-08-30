@@ -1,0 +1,473 @@
+openapi: 3.2.0
+info:
+  title: G2 Integration Reviews API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Integration Reviews
+paths:
+  /api/v2/products/{product_id}/integration_reviews:
+    get:
+      summary: Lists integration reviews for given product
+      operationId: getProductIntegrationReviews
+      tags:
+      - Integration Reviews
+      description: '**Requires `integration_reviews.read` scope.**
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: product_id
+        in: path
+        description: Primary Product UUID or Slug
+        required: true
+        schema:
+          type: string
+      - name: filter[product_uuid_eq]
+        description: Filter by integration product UUID
+        in: query
+        schema:
+          type: string
+      - name: filter[nps_eq]
+        description: Filter by exact NPS score (0-10)
+        in: query
+        schema:
+          type: string
+      - name: filter[nps_gt]
+        description: Filter by NPS greater than
+        in: query
+        schema:
+          type: string
+      - name: filter[nps_lt]
+        description: Filter by NPS less than
+        in: query
+        schema:
+          type: string
+      - name: fields[integration_reviews]
+        in: query
+        description: 'Comma-separated list of fields to include. Available fields: nps, description, product_name, primary_product_name, user_name, created_at, updated_at'
+        schema:
+          type: string
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. product,primary_product,user)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - product
+            - primary_product
+            - user
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '403':
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+              examples:
+                when user does not have access to the product:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: You do not have access to that resource
+                when user has product access but lacks the required license:
+                  value:
+                    errors:
+                    - status: '403'
+                      title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                      links:
+                        type:
+                        - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+              example:
+                errors:
+                - status: '403'
+                  title: Your current plan does not provide access to this resource. To unlock it, explore your upgrade options. Talk to G2 at the link below
+                  links:
+                    type:
+                    - https://sell.g2.com/strategy-session-with-customers?utm_source=g2&utm_medium=product&utm_campaign=g2-mcp-demo-request&utm_content=none&utm_term=none
+        '404':
+          description: With invalid product id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: With all fields included
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: 65bd6c03-6ac8-4024-87ac-000000000005
+                  type: integration_reviews
+                  attributes:
+                    primary_product_name: Primary Product
+                    product_name: Integration Product
+                    user_name: Verified User in Internet
+                    nps: 8
+                    description: Great integration with the product
+                    created_at: '2022-01-01T00:00:00.000-06:00'
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                  relationships:
+                    product:
+                      data:
+                        id: 65bd6c03-6ac8-4024-87ac-000000000001
+                        type: products
+                    primary_product:
+                      data:
+                        id: 65bd6c03-6ac8-4024-87ac-000000000002
+                        type: products
+                    user:
+                      data:
+                        id: 65bd6c03-6ac8-4024-87ac-000000000003
+                        type: users
+                included:
+                - id: 65bd6c03-6ac8-4024-87ac-000000000001
+                  type: products
+                  attributes:
+                    type: Software
+                    detail_description: null
+                    domain: example.com
+                    g2_url: http://www.lvh.me:63479/products/integration-product/reviews
+                    name: Integration Product
+                    public_detail_url: null
+                    review_count: 0
+                    slug: integration-product
+                    write_review_url: http://www.lvh.me:63479/products/integration-product/take_survey
+                    image_url: null
+                    pricing_tiers: []
+                    star_rating: 2.5
+                  relationships:
+                    categories:
+                      data:
+                      - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000006
+                        type: product_categories
+                    discussions:
+                      data: []
+                      links:
+                        related: http://data.lvh.me:63479/api/v2/products/65bd6c03-6ac8-4024-87ac-000000000001/discussions
+                    screenshots:
+                      data: []
+                    vendor:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000001
+                        type: vendors
+                - id: 65bd6c03-6ac8-4024-87ac-000000000002
+                  type: products
+                  attributes:
+                    type: Software
+                    detail_description: null
+                    domain: example.com
+                    g2_url: http://www.lvh.me:63479/products/primary-product/reviews
+                    name: Primary Product
+                    public_detail_url: null
+                    review_count: 0
+                    slug: primary-product
+                    write_review_url: http://www.lvh.me:63479/products/primary-product/take_survey
+                    image_url: null
+                    pricing_tiers: []
+                    star_rating: 2.5
+                  relationships:
+                    categories:
+                      data:
+                      - id: aaaaaaaa-bbbb-4ccc-8ddd-000000000022
+                        type: product_categories
+                    discussions:
+                      data: []
+                      links:
+                        related: http://data.lvh.me:63479/api/v2/products/65bd6c03-6ac8-4024-87ac-000000000002/discussions
+                    screenshots:
+                      data: []
+                    vendor:
+                      data:
+                        id: aaaaaaaa-bbbb-4ccc-8ddd-000000000018
+                        type: vendors
+                - id: 65bd6c03-6ac8-4024-87ac-000000000003
+                  type: users
+                  attributes:
+                    industry: Internet
+                    name: alex smith
+                    first_name: alex
+                    last_name: smith
+                    image: null
+                    company: null
+                    title: null
+                    company_segment: ' '
+                links:
+                  self: http://data.example.com/api/v2/products/65bd6c03-6ac8-4024-87ac-000000000002/integration_reviews?filter%5Bproduct_uuid_eq%5D=&filter%5Bnps_eq%5D=&filter%5Bnps_gt%5D=&filter%5Bnps_lt%5D=&fields%5Bintegration_reviews%5D=nps%2Cdescription%2Cproduct_name%2Cprimary_product_name%2Cuser_name%2Ccreated_at%2Cupdated_at&include=product,primary_product,user
+                  next: null
+                  prev: null
+                meta:
+                  record_count: 1
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                          - integration_reviews
+                        attributes:
+                          type: object
+                          properties:
+                            nps:
+                              type: integer
+                              minimum: 0
+                              maximum: 10
+                            description:
+                              type:
+                              - string
+                              - 'null'
+                            product_name:
+                              type: string
+                            primary_product_name:
+                              type: string
+                            user_name:
+                              type:
+                              - string
+                              - 'null'
+                            created_at:
+                              type: string
+                              format: datetime
+                            updated_at:
+                              type: string
+                              format: datetime
+                          required:
+                          - nps
+                          - product_name
+                          - primary_product_name
+                          - created_at
+                          - updated_at
+                        relationships:
+                          type: object
+                          properties:
+                            product:
+                              type: object
+                              required:
+                              - data
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                      enum:
+                                      - products
+                                included:
+                                  $ref: '#/components/schemas/included'
+                            primary_product:
+                              type: object
+                              required:
+                              - data
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                      enum:
+                                      - products
+                                included:
+                                  $ref: '#/components/schemas/included'
+                            user:
+                              type: object
+                              required:
+                              - data
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                      enum:
+                                      - users
+                                included:
+                                  $ref: '#/components/schemas/included'
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    type: array
+                    items:
+                      anyOf:
+                      - type: object
+                        properties:
+                          id:
+                            type: string
+                          type:
+                            type: string
+                            enum:
+                            - products
+                          attributes:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                              slug:
+                                type: string
+                        required:
+                        - id
+                        - type
+                        - attributes
+                      - type: object
+                        properties:
+                          id:
+                            type: string
+                          type:
+                            type: string
+                            enum:
+                            - users
+                          attributes:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                              first_name:
+                                type:
+                                - string
+                                - 'null'
+                              last_name:
+                                type:
+                                - string
+                                - 'null'
+                              company:
+                                type:
+                                - string
+                                - 'null'
+                        required:
+                        - id
+                        - type
+                        - attributes
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data

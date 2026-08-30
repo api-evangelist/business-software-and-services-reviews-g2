@@ -1,0 +1,555 @@
+openapi: 3.2.0
+info:
+  title: G2 Categories API
+  version: v2
+  description: '## Rate Limiting
+
+
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
+
+    '
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: data.g2.com
+tags:
+- name: Categories
+paths:
+  /api/v2/categories:
+    get:
+      summary: List of categories
+      operationId: getCategories
+      tags:
+      - Categories
+      description: '**No scope required.**
+
+
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: page[size]
+        in: query
+        required: false
+        description: 'Number of records per page (default: 25, max: 250)'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 25
+      - name: page[after]
+        in: query
+        required: false
+        description: Cursor for fetching the next page of results
+        schema:
+          type: string
+      - name: page[before]
+        in: query
+        required: false
+        description: Cursor for fetching the previous page of results
+        schema:
+          type: string
+      - name: filter[updated_at_gt]
+        description: Filter records updated after this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[updated_at_lt]
+        description: Filter records updated before this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[created_at_gt]
+        description: Filter records created after this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[created_at_lt]
+        description: Filter records created before this date
+        schema:
+          type: string
+          format: date-time
+        in: query
+      - name: filter[name_eq]
+        description: Filter by exact name match
+        in: query
+        schema:
+          type: string
+      - name: filter[name_cont]
+        description: Filter by partial name match
+        in: query
+        schema:
+          type: string
+      - name: filter[slug_eq]
+        description: Filter by exact slug match
+        in: query
+        schema:
+          type: string
+      - name: filter[slug_cont]
+        description: Filter by partial slug match
+        in: query
+        schema:
+          type: string
+      - name: fields[categories]
+        in: query
+        explode: false
+        description: Comma separated list of fields for categories to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - uuid
+            - name
+            - slug
+            - description
+            - updated_at
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. products,children,ancestors,descendants,parent)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - products
+            - children
+            - ancestors
+            - descendants
+            - parent
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Successful responses
+          content:
+            application/vnd.api+json:
+              example:
+                data:
+                - id: c6ef5673-90ca-4ddd-8c78-000000000003
+                  type: categories
+                  attributes:
+                    uuid: c6ef5673-90ca-4ddd-8c78-000000000003
+                    name: Buyer Intent Data Providers
+                    slug: buyer-intent-data-providers
+                    description: Description
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                  relationships:
+                    products:
+                      data: []
+                      links:
+                        related: http://data.lvh.me:63479/api/v2/products?filter%5Bcategory_id%5D=c6ef5673-90ca-4ddd-8c78-000000000003
+                    children:
+                      data: []
+                    ancestors:
+                      data:
+                      - id: c6ef5673-90ca-4ddd-8c78-000000000001
+                        type: product_categories
+                      - id: c6ef5673-90ca-4ddd-8c78-000000000002
+                        type: product_categories
+                    descendants:
+                      data: []
+                    parent:
+                      data:
+                        id: c6ef5673-90ca-4ddd-8c78-000000000002
+                        type: product_categories
+                included:
+                - id: c6ef5673-90ca-4ddd-8c78-000000000001
+                  type: product_categories
+                  attributes:
+                    name: test
+                    slug: test
+                    description: test
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                - id: c6ef5673-90ca-4ddd-8c78-000000000002
+                  type: product_categories
+                  attributes:
+                    name: test
+                    slug: test-aaaaaaaa-bbbb-4ccc-8ddd-000000000004
+                    description: test
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                links:
+                  self: http://data.example.com/api/v2/categories?filter%5Bupdated_at_gt%5D=&filter%5Bupdated_at_lt%5D=&filter%5Bcreated_at_gt%5D=&filter%5Bcreated_at_lt%5D=&filter%5Bname_eq%5D=&filter%5Bname_cont%5D=&filter%5Bslug_eq%5D=&filter%5Bslug_cont%5D=&fields%5Bcategories%5D=uuid,name,slug,description,updated_at&include=products,children,ancestors,descendants,parent
+                  next: null
+                  prev: null
+                meta:
+                  record_count: 1
+              schema:
+                type: object
+                required:
+                - data
+                - links
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            uuid:
+                              type: string
+                              description: Category UUID
+                              example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                            name:
+                              type: string
+                              description: Category name
+                              example: CRM Software
+                            slug:
+                              type: string
+                              description: Category slug
+                              example: crm
+                            description:
+                              type:
+                              - string
+                              - 'null'
+                              description: Category description
+                            updated_at:
+                              type: string
+                              description: Last updated timestamp
+                              format: date-time
+                        relationships:
+                          type: object
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  included:
+                    $ref: '#/components/schemas/included'
+                  links:
+                    $ref: '#/components/schemas/cursor_pagination'
+  /api/v2/categories/{id}:
+    get:
+      summary: Shows a single category
+      operationId: getCategory
+      tags:
+      - Categories
+      description: '**No scope required.**
+
+
+
+        '
+      security:
+      - AccountAPIToken: []
+      parameters:
+      - name: fields[categories]
+        in: query
+        explode: false
+        description: Comma separated list of fields for categories to include in response
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - uuid
+            - name
+            - slug
+            - description
+            - updated_at
+      - name: include
+        in: query
+        explode: false
+        description: Comma-separated list of relationships to include (e.g. products,children,ancestors,descendants,parent)
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - products
+            - children
+            - ancestors
+            - descendants
+            - parent
+      - name: id
+        in: path
+        description: Category UUID or Slug
+        required: true
+        schema:
+          type: string
+      responses:
+        '400':
+          description: with invalid request parameters
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '400'
+                  title: 'Invalid parameter: "include"             contains unknown items: "foo"'
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: Unauthenticated
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '401'
+                  title: Bad Credentials
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: With invalid id
+          content:
+            application/vnd.api+json:
+              example:
+                errors:
+                - status: '404'
+                  title: Not Found
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '200':
+          description: Category details with all fields included
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: Category name
+                            example: CRM Software
+                          slug:
+                            type: string
+                            description: Category slug
+                            example: crm
+                      relationships:
+                        type: object
+                  included:
+                    $ref: '#/components/schemas/included'
+              examples:
+                when requesting by UUID:
+                  value:
+                    data:
+                      id: c6ef5673-90ca-4ddd-8c78-000000000003
+                      type: categories
+                      attributes:
+                        uuid: c6ef5673-90ca-4ddd-8c78-000000000003
+                        name: Buyer Intent Data Providers
+                        slug: buyer-intent-data-providers
+                        description: Description
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                      relationships:
+                        products:
+                          data: []
+                          links:
+                            related: http://data.lvh.me:63479/api/v2/products?filter%5Bcategory_id%5D=c6ef5673-90ca-4ddd-8c78-000000000003
+                        children:
+                          data: []
+                        ancestors:
+                          data:
+                          - id: c6ef5673-90ca-4ddd-8c78-000000000001
+                            type: product_categories
+                          - id: c6ef5673-90ca-4ddd-8c78-000000000002
+                            type: product_categories
+                        descendants:
+                          data: []
+                        parent:
+                          data:
+                            id: c6ef5673-90ca-4ddd-8c78-000000000002
+                            type: product_categories
+                    included:
+                    - id: c6ef5673-90ca-4ddd-8c78-000000000001
+                      type: product_categories
+                      attributes:
+                        name: test
+                        slug: test
+                        description: test
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                    - id: c6ef5673-90ca-4ddd-8c78-000000000002
+                      type: product_categories
+                      attributes:
+                        name: test
+                        slug: test-aaaaaaaa-bbbb-4ccc-8ddd-000000000004
+                        description: test
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                when requesting with specific fields:
+                  value:
+                    data:
+                      id: c6ef5673-90ca-4ddd-8c78-000000000003
+                      type: categories
+                      attributes:
+                        name: Buyer Intent Data Providers
+                        slug: buyer-intent-data-providers
+                      relationships:
+                        products:
+                          data: []
+                          links:
+                            related: http://data.lvh.me:63479/api/v2/products?filter%5Bcategory_id%5D=c6ef5673-90ca-4ddd-8c78-000000000003
+                        children:
+                          data: []
+                        ancestors:
+                          data:
+                          - id: c6ef5673-90ca-4ddd-8c78-000000000001
+                            type: product_categories
+                          - id: c6ef5673-90ca-4ddd-8c78-000000000002
+                            type: product_categories
+                        descendants:
+                          data: []
+                        parent:
+                          data:
+                            id: c6ef5673-90ca-4ddd-8c78-000000000002
+                            type: product_categories
+                    included:
+                    - id: c6ef5673-90ca-4ddd-8c78-000000000001
+                      type: product_categories
+                      attributes:
+                        name: test
+                        slug: test
+                        description: test
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+                    - id: c6ef5673-90ca-4ddd-8c78-000000000002
+                      type: product_categories
+                      attributes:
+                        name: test
+                        slug: test-aaaaaaaa-bbbb-4ccc-8ddd-000000000004
+                        description: test
+                        updated_at: '2022-01-01T00:00:00.000-06:00'
+              example:
+                data:
+                  id: c6ef5673-90ca-4ddd-8c78-000000000003
+                  type: categories
+                  attributes:
+                    name: Buyer Intent Data Providers
+                    slug: buyer-intent-data-providers
+                  relationships:
+                    products:
+                      data: []
+                      links:
+                        related: http://data.lvh.me:63479/api/v2/products?filter%5Bcategory_id%5D=c6ef5673-90ca-4ddd-8c78-000000000003
+                    children:
+                      data: []
+                    ancestors:
+                      data:
+                      - id: c6ef5673-90ca-4ddd-8c78-000000000001
+                        type: product_categories
+                      - id: c6ef5673-90ca-4ddd-8c78-000000000002
+                        type: product_categories
+                    descendants:
+                      data: []
+                    parent:
+                      data:
+                        id: c6ef5673-90ca-4ddd-8c78-000000000002
+                        type: product_categories
+                included:
+                - id: c6ef5673-90ca-4ddd-8c78-000000000001
+                  type: product_categories
+                  attributes:
+                    name: test
+                    slug: test
+                    description: test
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+                - id: c6ef5673-90ca-4ddd-8c78-000000000002
+                  type: product_categories
+                  attributes:
+                    name: test
+                    slug: test-aaaaaaaa-bbbb-4ccc-8ddd-000000000004
+                    description: test
+                    updated_at: '2022-01-01T00:00:00.000-06:00'
+components:
+  schemas:
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              title:
+                type: string
+              links:
+                type:
+                - object
+                - 'null'
+              source:
+                type:
+                - object
+                - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
+  securitySchemes:
+    AccountAPIToken:
+      type: http
+      scheme: bearer
+    G2OAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          tokenUrl: https://www.g2.com/oauth/token
+          authorizationUrl: https://www.g2.com/oauth/authorize
+          scopes:
+            openid: OpenID Connect default scope
+            profile: Profile information on current user
+            data_subscriptions.read: Read Data Subscription records
+            data_subscriptions.read_write: Modify Data Subscription records
+            partner:partner-id.read: Access records created in Partner realm
+            performance_analytics.read: Read Performance Analytics data
