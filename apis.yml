@@ -722,6 +722,8 @@ apis:
   humanURL: https://data.g2.com/api/v2/docs/index.html
   baseURL: https://data.g2.com/api/v2/
   tags:
+  - Product
+  tags_raw:
   - Products
   properties:
   - type: OpenAPI
@@ -961,6 +963,8 @@ apis:
   humanURL: https://data.g2.com/api/v2/docs/index.html
   baseURL: https://data.g2.com/api/v2/
   tags:
+  - User
+  tags_raw:
   - Users
   properties:
   - type: OpenAPI
