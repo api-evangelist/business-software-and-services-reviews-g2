@@ -5,9 +5,7 @@ info:
   description: '## Rate Limiting
 
 
-    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
-
-    '
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.'
 servers:
 - url: https://{defaultHost}
   variables:
@@ -22,9 +20,7 @@ paths:
       operationId: createG2ActivateIndustrySearch
       tags:
       - G2 Activate
-      description: '**Requires `g2_activate.read` scope.**
-
-        '
+      description: '**Requires `g2_activate.read` scope.**'
       security:
       - AccountAPIToken: []
         G2OAuth:
@@ -142,9 +138,7 @@ paths:
       operationId: getG2ActivateLockedCompanies
       tags:
       - G2 Activate
-      description: '**Requires `g2_activate.read` scope.**
-
-        '
+      description: '**Requires `g2_activate.read` scope.**'
       security:
       - AccountAPIToken: []
         G2OAuth:
@@ -263,9 +257,7 @@ paths:
       operationId: getG2ActivateUnlockedCompanies
       tags:
       - G2 Activate
-      description: '**Requires `g2_activate.read` scope.**
-
-        '
+      description: '**Requires `g2_activate.read` scope.**'
       security:
       - AccountAPIToken: []
         G2OAuth:
@@ -495,9 +487,7 @@ paths:
       operationId: getG2ActivateUnlockedCompany
       tags:
       - G2 Activate
-      description: '**Requires `g2_activate.read` scope.**
-
-        '
+      description: '**Requires `g2_activate.read` scope.**'
       security:
       - AccountAPIToken: []
         G2OAuth:

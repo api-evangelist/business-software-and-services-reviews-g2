@@ -5,9 +5,7 @@ info:
   description: '## Rate Limiting
 
 
-    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
-
-    '
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.'
 servers:
 - url: https://{defaultHost}
   variables:
@@ -22,11 +20,7 @@ paths:
       operationId: getCategories
       tags:
       - Categories
-      description: '**No scope required.**
-
-
-
-        '
+      description: '**No scope required.**'
       security:
       - AccountAPIToken: []
       parameters:
@@ -253,11 +247,7 @@ paths:
       operationId: getCategory
       tags:
       - Categories
-      description: '**No scope required.**
-
-
-
-        '
+      description: '**No scope required.**'
       security:
       - AccountAPIToken: []
       parameters:

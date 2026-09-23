@@ -5,9 +5,7 @@ info:
   description: '## Rate Limiting
 
 
-    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
-
-    '
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.'
 servers:
 - url: https://{defaultHost}
   variables:
@@ -25,14 +23,10 @@ paths:
       description: '**No scope required.**
 
 
-
-
         Retrieve API metering credit account details including balance and total credits.
 
 
-        Use `?include=deductions` to include the last month of deductions in the response.
-
-        '
+        Use `?include=deductions` to include the last month of deductions in the response.'
       security:
       - AccountAPIToken: []
       parameters:
@@ -310,8 +304,6 @@ paths:
       description: '**No scope required.**
 
 
-
-
         Retrieve credit account deductions aggregated by month and year.
 
 
@@ -319,9 +311,7 @@ paths:
 
         - `filter[month]`: Filter by month (1-12)
 
-        - `filter[year]`: Filter by year (e.g., 2024)
-
-        '
+        - `filter[year]`: Filter by year (e.g., 2024)'
       security:
       - AccountAPIToken: []
       parameters:

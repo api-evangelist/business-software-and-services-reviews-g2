@@ -5,9 +5,7 @@ info:
   description: '## Rate Limiting
 
 
-    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
-
-    '
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.'
 servers:
 - url: https://{defaultHost}
   variables:
@@ -25,9 +23,7 @@ paths:
       description: '**Requires `performance_analytics.read` scope.**
 
 
-        Report data-quality counts (missing currency, hidden outliers, duplicates) for one CRM integration.
-
-        '
+        Report data-quality counts (missing currency, hidden outliers, duplicates) for one CRM integration.'
       security:
       - G2OAuth:
         - performance_analytics.read
@@ -150,9 +146,7 @@ paths:
       description: '**Requires `performance_analytics.read` scope.**
 
 
-        Summarize G2-influenced ROI tiles for one CRM integration over a date window.
-
-        '
+        Summarize G2-influenced ROI tiles for one CRM integration over a date window.'
       security:
       - G2OAuth:
         - performance_analytics.read
@@ -389,9 +383,7 @@ paths:
       description: '**Requires `performance_analytics.read` scope.**
 
 
-        Return a time series of one ROI metric bucketed by month or quarter.
-
-        '
+        Return a time series of one ROI metric bucketed by month or quarter.'
       security:
       - G2OAuth:
         - performance_analytics.read
@@ -607,9 +599,7 @@ paths:
       description: '**Requires `performance_analytics.read` scope.**
 
 
-        Report connection health and synced-deal volume for one CRM integration.
-
-        '
+        Report connection health and synced-deal volume for one CRM integration.'
       security:
       - G2OAuth:
         - performance_analytics.read
@@ -735,9 +725,7 @@ paths:
       description: '**Requires `performance_analytics.read` scope.**
 
 
-        Report whether a supported CRM is connected for a PA-licensed product.
-
-        '
+        Report whether a supported CRM is connected for a PA-licensed product.'
       security:
       - G2OAuth:
         - performance_analytics.read
@@ -841,19 +829,6 @@ paths:
                 $ref: '#/components/schemas/Errors'
 components:
   schemas:
-    included:
-      type: array
-      items:
-        type: object
-        properties:
-          id:
-            type: string
-          type:
-            type: string
-          attributes:
-            type: object
-          relationships:
-            type: object
     Errors:
       type: object
       properties:
@@ -874,6 +849,19 @@ components:
                 type:
                 - object
                 - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
   securitySchemes:
     AccountAPIToken:
       type: http

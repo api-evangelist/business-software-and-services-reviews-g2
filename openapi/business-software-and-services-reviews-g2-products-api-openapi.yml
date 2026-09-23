@@ -5,9 +5,7 @@ info:
   description: '## Rate Limiting
 
 
-    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
-
-    '
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.'
 servers:
 - url: https://{defaultHost}
   variables:
@@ -22,9 +20,7 @@ paths:
       operationId: getProducts
       tags:
       - Products
-      description: '**Requires `products.read` scope.**
-
-        '
+      description: '**Requires `products.read` scope.**'
       security:
       - AccountAPIToken: []
         G2OAuth:
@@ -397,9 +393,7 @@ paths:
       operationId: getProduct
       tags:
       - Products
-      description: '**Requires `products.read` scope.**
-
-        '
+      description: '**Requires `products.read` scope.**'
       security:
       - AccountAPIToken: []
       parameters:
@@ -825,9 +819,7 @@ paths:
 
         This endpoint shows subscription-specific product information, of
 
-        products that the current account has ownership of.
-
-        '
+        products that the current account has ownership of.'
       security:
       - AccountAPIToken: []
         G2OAuth:

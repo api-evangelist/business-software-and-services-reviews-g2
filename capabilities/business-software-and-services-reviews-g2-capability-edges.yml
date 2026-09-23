@@ -1,0 +1,71 @@
+slug: business-software-and-services-reviews-g2
+provider: Business Software and Services Reviews | G2
+generated_by: planning/capability-mapping/scripts/classify_capabilities.py
+model: claude-opus-5
+frame:
+- Software & Technology
+min_confidence: 0.7
+capability_model:
+  source: https://github.com/vincentmakes/turbo-ea-capabilities
+  license: CC-BY-4.0
+  attribution: Turbo EA Capabilities by Vincent Verdet — Turbo EA, https://github.com/vincentmakes/turbo-ea-capabilities,
+    CC BY 4.0
+  notice: NOTICE
+edge_count: 5
+edges:
+- tag: Competitors
+  spec_file: business-software-and-services-reviews-g2-competitors-api-openapi.yml
+  capability_id: BC-400.30
+  capability_id_l1: BC-400
+  capability_name: Market Intelligence Management
+  confidence: 0.75
+  evidence: GET /api/v2/products/{product_id}/competitors  getProductCompetitors  Lists competitors related
+    to given product
+  reason: The single operation returns competitor sets for a product, which is competitive intelligence
+    — squarely Market Intelligence Management. Thin surface (one read endpoint) keeps confidence below
+    0.8.
+- tag: Market Signals
+  spec_file: business-software-and-services-reviews-g2-market-signals-api-openapi.yml
+  capability_id: BC-400.30
+  capability_id_l1: BC-400
+  capability_name: Market Intelligence Management
+  confidence: 0.75
+  evidence: GET /api/v2/market_signals  getMarketSignalsIndex  Retrieve buyer intent signals for a date
+    range
+  reason: Aggregate market-level buyer intent signals over a time range is market research/competitive
+    intelligence data. Ambiguity remains between intelligence and demand generation use, so confidence
+    is held below 0.8.
+- tag: Buyer Intent
+  spec_file: business-software-and-services-reviews-g2-buyer-intent-api-openapi.yml
+  capability_id: BC-400.30
+  capability_id_l1: BC-400
+  capability_name: Market Intelligence Management
+  confidence: 0.7
+  evidence: GET /api/v2/buyer_intent  getGlobalBuyerIntentInteractions  Browse buyer intent interactions
+    (product-agnostic)
+  reason: Buyer intent interaction data on a software marketplace supplies market/competitive intelligence
+    signals about prospective buyers researching products. It could arguably feed demand generation (BC-400.40),
+    but the surface is read-only intelligence data, so Market Intelligence Management is the closest fit;
+    confidence moderated by the strategy/demand-gen ambiguity.
+- tag: Data Solutions Reviews
+  spec_file: business-software-and-services-reviews-g2-data-solutions-reviews-api-openapi.yml
+  capability_id: BC-400.30
+  capability_id_l1: BC-400
+  capability_name: Market Intelligence Management
+  confidence: 0.7
+  evidence: Data Solutions API providing enriched review data with flat attribute structures. ... getDataSolutionsReviews  Lists
+    reviews with all Data Solutions fields
+  reason: Bulk delivery of enriched peer software reviews is customer/market insight data used for research.
+    Market Intelligence Management fits the consumer-side reading; a vendor reading it as product feedback
+    (BC-820.60) is also plausible, hence moderate confidence.
+- tag: G2 Activate
+  spec_file: business-software-and-services-reviews-g2-g2-activate-api-openapi.yml
+  capability_id: BC-400.40
+  capability_id_l1: BC-400
+  capability_name: Demand Generation Management
+  confidence: 0.7
+  evidence: GET /api/v2/products/{product_id}/g2_activate/locked_companies  Lists locked companies (masked)
+    showing intent for a product ... Shows a single unlocked company with resolved contacts
+  reason: Unlocking companies showing buying intent and resolving their contacts is lead identification
+    and enrichment for demand generation. The intelligence-versus-lead-generation boundary is the residual
+    ambiguity, but 'resolved contacts' tips it toward Demand Generation.

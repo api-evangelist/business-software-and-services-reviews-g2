@@ -20,11 +20,7 @@ paths:
       description: '**Requires `ds_reviews.read` scope.**
 
 
-
-        **⚠️ BETA API**: This endpoint is a beta endpoint and it definition might change by the official release.
-
-
-        '
+        **⚠️ BETA API**: This endpoint is a beta endpoint and it definition might change by the official release.'
       security:
       - AccountAPIToken: []
       parameters:

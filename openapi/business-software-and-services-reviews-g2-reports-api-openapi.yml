@@ -5,9 +5,7 @@ info:
   description: '## Rate Limiting
 
 
-    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
-
-    '
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.'
 servers:
 - url: https://{defaultHost}
   variables:
@@ -22,9 +20,7 @@ paths:
       operationId: getGridReports
       tags:
       - Reports
-      description: '**Requires `reports.read` scope.**
-
-        '
+      description: '**Requires `reports.read` scope.**'
       security:
       - AccountAPIToken:
         - reports.read

@@ -5,9 +5,7 @@ info:
   description: '## Rate Limiting
 
 
-    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
-
-    '
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.'
 servers:
 - url: https://{defaultHost}
   variables:
@@ -100,9 +98,7 @@ paths:
 
         - Filtered: `dimension_filters[company_name_cont]=Acme&dimensions=company_name`
 
-        - Sorted by activity: `dimensions=company_name&measures=total_activity&sort=-total_activity`
-
-        '
+        - Sorted by activity: `dimensions=company_name&measures=total_activity&sort=-total_activity`'
       security:
       - AccountAPIToken: []
         G2OAuth:
@@ -419,9 +415,7 @@ paths:
 
         Pass product_id to specify which products, or omit to use your assigned products.
 
-        Supports multi-product queries — the data is not scoped to a single subject product.
-
-        '
+        Supports multi-product queries — the data is not scoped to a single subject product.'
       security:
       - AccountAPIToken: []
         G2OAuth:
@@ -629,7 +623,105 @@ paths:
       operationId: getBuyerIntentInteractions
       tags:
       - Buyer Intent
-      description: "**Requires `buyer_intent.read` scope.**\n\nQuery buyer intent data using an analytical query interface.\n\n## Query Language\n\nThis endpoint uses an OLAP-style query language that supports:\n- **Dimensions**: Group and categorize data (e.g., company_name, company_domain, day)\n- **Measures**: Aggregate numerical values (e.g., total_activity, visitor_count)\n- **Filters**: Apply conditions to limit results\n\n### Filter Operators\nFilters use the format `dimension_filters[name_suffix]` where `name`\nis the dimension name and `suffix` indicates the operation:\n\n- `_eq`: Equals (exact match)\n- `_not_eq`: Not equals\n- `_cont`: Contains (substring match)\n- `_not_cont`: Does not contain\n- `_gt`: Greater than\n- `_gteq`: Greater than or equal\n- `_lt`: Less than\n- `_lteq`: Less than or equal\n- `_present`: Field has a value\n- `_empty`: Field is empty\n\n### Time Series vs Aggregated Data\n- **Aggregated**: Request dimensions without `day` for company-level summaries\n- **Time Series**: Include `day` dimension for daily breakdowns over time\n\n### Sorting Results\nUse the `sort` parameter to order results by any dimension or measure:\n- **Ascending**: `sort=company_name` or `sort=total_activity`\n- **Descending**: `sort=-company_intent_score` (prefix with `-`)\n- **Default**: Results are sorted by `-company_intent_score` (highest intent first)\n\nAvailable sort fields include all dimensions and measures listed above.\n\n### Signal Types\nThe `signal_type` dimension identifies the type of buyer activity on G2 (e.g., `profile`, `pricing`, `compare`).\n\n### Competitive Signals\nResults include activity on both your product and competitor products in your categories.\nCompare `left_product_id` to `subject_product_id` to distinguish the two:\n\n- **`left_product_id` = `subject_product_id`**: Direct signal — activity on your product.\n- **`left_product_id` ≠ `subject_product_id`**: Competitive signal — activity on a competitor.\n  The `signal_type` indicates what the buyer did (e.g., viewed the competitor's `profile` or `pricing` page).\n  Use `left_product_name` / `left_product_slug` to identify the competitor.\n\n### Examples\n- Company summary: `dimensions=company_name,company_domain&measures=total_activity`\n- Time series: `dimensions=company_name,day&measures=company_intent_score`\n- Filtered: `dimension_filters[company_name_cont]=Acme&dimensions=company_name`\n- Sorted by activity: `dimensions=company_name&measures=total_activity&sort=-total_activity`\n- Competitive activity: `dimensions=company_name,signal_type,left_product_name,left_product_id&measures=total_activity`\n"
+      description: '**Requires `buyer_intent.read` scope.**
+
+
+        Query buyer intent data using an analytical query interface.
+
+
+        ## Query Language
+
+
+        This endpoint uses an OLAP-style query language that supports:
+
+        - **Dimensions**: Group and categorize data (e.g., company_name, company_domain, day)
+
+        - **Measures**: Aggregate numerical values (e.g., total_activity, visitor_count)
+
+        - **Filters**: Apply conditions to limit results
+
+
+        ### Filter Operators
+
+        Filters use the format `dimension_filters[name_suffix]` where `name`
+
+        is the dimension name and `suffix` indicates the operation:
+
+
+        - `_eq`: Equals (exact match)
+
+        - `_not_eq`: Not equals
+
+        - `_cont`: Contains (substring match)
+
+        - `_not_cont`: Does not contain
+
+        - `_gt`: Greater than
+
+        - `_gteq`: Greater than or equal
+
+        - `_lt`: Less than
+
+        - `_lteq`: Less than or equal
+
+        - `_present`: Field has a value
+
+        - `_empty`: Field is empty
+
+
+        ### Time Series vs Aggregated Data
+
+        - **Aggregated**: Request dimensions without `day` for company-level summaries
+
+        - **Time Series**: Include `day` dimension for daily breakdowns over time
+
+
+        ### Sorting Results
+
+        Use the `sort` parameter to order results by any dimension or measure:
+
+        - **Ascending**: `sort=company_name` or `sort=total_activity`
+
+        - **Descending**: `sort=-company_intent_score` (prefix with `-`)
+
+        - **Default**: Results are sorted by `-company_intent_score` (highest intent first)
+
+
+        Available sort fields include all dimensions and measures listed above.
+
+
+        ### Signal Types
+
+        The `signal_type` dimension identifies the type of buyer activity on G2 (e.g., `profile`, `pricing`, `compare`).
+
+
+        ### Competitive Signals
+
+        Results include activity on both your product and competitor products in your categories.
+
+        Compare `left_product_id` to `subject_product_id` to distinguish the two:
+
+
+        - **`left_product_id` = `subject_product_id`**: Direct signal — activity on your product.
+
+        - **`left_product_id` ≠ `subject_product_id`**: Competitive signal — activity on a competitor.
+
+        The `signal_type` indicates what the buyer did (e.g., viewed the competitor''s `profile` or `pricing` page).
+
+        Use `left_product_name` / `left_product_slug` to identify the competitor.
+
+
+        ### Examples
+
+        - Company summary: `dimensions=company_name,company_domain&measures=total_activity`
+
+        - Time series: `dimensions=company_name,day&measures=company_intent_score`
+
+        - Filtered: `dimension_filters[company_name_cont]=Acme&dimensions=company_name`
+
+        - Sorted by activity: `dimensions=company_name&measures=total_activity&sort=-total_activity`
+
+        - Competitive activity: `dimensions=company_name,signal_type,left_product_name,left_product_id&measures=total_activity`'
       security:
       - AccountAPIToken: []
         G2OAuth:
@@ -936,19 +1028,6 @@ paths:
                     $ref: '#/components/schemas/cursor_pagination'
 components:
   schemas:
-    included:
-      type: array
-      items:
-        type: object
-        properties:
-          id:
-            type: string
-          type:
-            type: string
-          attributes:
-            type: object
-          relationships:
-            type: object
     cursor_pagination:
       type: object
       properties:
@@ -964,6 +1043,19 @@ components:
           type:
           - string
           - 'null'
+    included:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+          attributes:
+            type: object
+          relationships:
+            type: object
   securitySchemes:
     AccountAPIToken:
       type: http

@@ -5,9 +5,7 @@ info:
   description: '## Rate Limiting
 
 
-    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
-
-    '
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.'
 servers:
 - url: https://{defaultHost}
   variables:
@@ -27,9 +25,7 @@ paths:
 
         Data Subscriptions require a Partner ID and appropriate scope.
 
-        Contact G2 for a unique Partner ID.
-
-        '
+        Contact G2 for a unique Partner ID.'
       security:
       - AccountAPIToken: []
         G2OAuth:
@@ -166,9 +162,7 @@ paths:
 
         Data Subscriptions require a Partner ID and appropriate scope.
 
-        Contact G2 for a unique Partner ID.
-
-        '
+        Contact G2 for a unique Partner ID.'
       security:
       - G2OAuth:
         - data_subscriptions.write
@@ -257,7 +251,12 @@ paths:
       operationId: deletePartnerDataSubscription
       tags:
       - Data Subscriptions
-      description: "**Requires `data_subscriptions.write` scope.**\n\nData Subscriptions require a Partner ID and appropriate scope.\n Contact G2 for a unique Partner ID.\n"
+      description: '**Requires `data_subscriptions.write` scope.**
+
+
+        Data Subscriptions require a Partner ID and appropriate scope.
+
+        Contact G2 for a unique Partner ID.'
       security:
       - G2OAuth:
         - data_subscriptions.read
@@ -281,21 +280,6 @@ paths:
           description: ''
 components:
   schemas:
-    cursor_pagination:
-      type: object
-      properties:
-        next:
-          type:
-          - string
-          - 'null'
-        prev:
-          type:
-          - string
-          - 'null'
-        self:
-          type:
-          - string
-          - 'null'
     Errors:
       type: object
       properties:
@@ -316,6 +300,21 @@ components:
                 type:
                 - object
                 - 'null'
+    cursor_pagination:
+      type: object
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+        prev:
+          type:
+          - string
+          - 'null'
+        self:
+          type:
+          - string
+          - 'null'
     included:
       type: array
       items:

@@ -5,9 +5,7 @@ info:
   description: '## Rate Limiting
 
 
-    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
-
-    '
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.'
 servers:
 - url: https://{defaultHost}
   variables:
@@ -22,9 +20,7 @@ paths:
       operationId: getCategoryFeatures
       tags:
       - Product Features
-      description: '**Requires `product_features.read` scope.**
-
-        '
+      description: '**Requires `product_features.read` scope.**'
       security:
       - AccountAPIToken: []
       parameters:
@@ -289,9 +285,7 @@ paths:
       operationId: getAllCategoryFeatures
       tags:
       - Product Features
-      description: '**Requires `product_features.read` scope.**
-
-        '
+      description: '**Requires `product_features.read` scope.**'
       security:
       - AccountAPIToken: []
       parameters:
@@ -540,9 +534,7 @@ paths:
       operationId: getProductFeatures
       tags:
       - Product Features
-      description: '**Requires `product_features.read` scope.**
-
-        '
+      description: '**Requires `product_features.read` scope.**'
       security:
       - AccountAPIToken: []
       parameters:
@@ -810,9 +802,7 @@ paths:
       operationId: getAllProductFeatures
       tags:
       - Product Features
-      description: '**Requires `product_features.read` scope.**
-
-        '
+      description: '**Requires `product_features.read` scope.**'
       security:
       - AccountAPIToken: []
       parameters:

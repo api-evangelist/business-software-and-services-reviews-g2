@@ -5,9 +5,7 @@ info:
   description: '## Rate Limiting
 
 
-    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
-
-    '
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.'
 servers:
 - url: https://{defaultHost}
   variables:
@@ -36,9 +34,7 @@ paths:
         If no dates are provided, defaults to today for both start and end date.
 
 
-        Results are paginated using cursor-based pagination (default 25, max 250 per page).
-
-        '
+        Results are paginated using cursor-based pagination (default 25, max 250 per page).'
       security:
       - AccountAPIToken: []
         G2OAuth:

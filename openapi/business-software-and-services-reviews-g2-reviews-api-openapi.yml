@@ -5,9 +5,7 @@ info:
   description: '## Rate Limiting
 
 
-    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.
-
-    '
+    Cloudflare limits requests to the G2 API to **100 requests per second** per source IP address.'
 servers:
 - url: https://{defaultHost}
   variables:
@@ -27,9 +25,7 @@ paths:
 
         For filters that require integer IDs, the appropriate IDs are available in the meta aggregates of this endpoint.
 
-        Suggestion: Query reviews for your product and then use filtering based on data returned to narrow results.
-
-        '
+        Suggestion: Query reviews for your product and then use filtering based on data returned to narrow results.'
       security:
       - AccountAPIToken: []
       parameters:
@@ -721,9 +717,7 @@ paths:
       - Reviews
       description: '**⚠️ G2 is currently restricting access to this endpoint.**
 
-        This endpoint retrieves the review for a specific product owned by the current user.
-
-        '
+        This endpoint retrieves the review for a specific product owned by the current user.'
       security:
       - AccountAPIToken: []
         G2OAuth:
@@ -1276,7 +1270,11 @@ paths:
       operationId: submitCurrentUserProductReview
       tags:
       - Reviews
-      description: "**⚠️ G2 is currently restricting access to this endpoint.**\n This endpoint allows the user to submit or update a review for a specific product.\n The review is based on predefined questions and answers.'\n"
+      description: '**⚠️ G2 is currently restricting access to this endpoint.**
+
+        This endpoint allows the user to submit or update a review for a specific product.
+
+        The review is based on predefined questions and answers.'''
       security:
       - AccountAPIToken: []
         G2OAuth:
